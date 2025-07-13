@@ -22,6 +22,11 @@
             android:text="@string/tab_insulin"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
+
+        <com.google.android.material.tabs.TabItem
+            android:text="@string/tab_nightscout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
     </com.google.android.material.tabs.TabLayout>
 
     <LinearLayout
@@ -111,6 +116,21 @@
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/insulinRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/nightscoutLayout"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:visibility="gone">
+
+        <WebView
+            android:id="@+id/nightscoutWebView"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
