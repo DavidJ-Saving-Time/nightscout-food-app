@@ -5,4 +5,6 @@
     <string name="fat_format">Fat: %.1fg</string>
     <string name="delete">X</string>
     <string name="timestamp_hint">Date &amp; Time</string>
+    <string name="tab_meals">Meals</string>
+    <string name="tab_insulin">Insulin</string>
 </resources>
