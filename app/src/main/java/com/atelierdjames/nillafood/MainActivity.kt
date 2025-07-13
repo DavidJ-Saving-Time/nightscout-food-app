@@ -160,9 +160,31 @@ class MainActivity : AppCompatActivity() {
             runOnUiThread {
                 result?.let {
                     insulinAdapter.submitList(it)
+                    updateLastScanText(it)
                 }
             }
         }
+    }
+
+    private fun updateLastScanText(list: List<InsulinInjection>) {
+        val now = java.time.Instant.now()
+
+        fun hoursSince(type: String): Long? {
+            val latest = list.filter { it.insulin.equals(type, ignoreCase = true) }
+                .maxByOrNull { runCatching { java.time.Instant.parse(it.time) }.getOrNull() ?: java.time.Instant.EPOCH }
+            return latest?.let { inj ->
+                runCatching { java.time.Duration.between(java.time.Instant.parse(inj.time), now).toHours() }.getOrNull()
+            }
+        }
+
+        val nova = hoursSince("Novorapid")
+        val tres = hoursSince("Tresiba")
+
+        val parts = mutableListOf<String>()
+        nova?.let { parts.add(getString(R.string.last_scan_format, "Novorapid", it)) }
+        tres?.let { parts.add(getString(R.string.last_scan_format, "Tresiba", it)) }
+
+        binding.lastScanText.text = parts.joinToString("\n")
     }
     private fun resetForm() {
         binding.carbsInput.text?.clear()
