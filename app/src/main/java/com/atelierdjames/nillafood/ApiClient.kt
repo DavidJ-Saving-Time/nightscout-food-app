@@ -128,53 +128,63 @@ object ApiClient {
         }
     }
 
-    fun getAverageGlucose(callback: (Float?) -> Unit) {
+    fun getAverageGlucose(context: Context, callback: (Float?) -> Unit) {
         CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val now = java.time.Instant.now()
-                val yesterday = now.minus(1, java.time.temporal.ChronoUnit.DAYS)
-                val formatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-                    .withZone(java.time.ZoneOffset.UTC)
-                val start = formatter.format(yesterday)
-                val end = formatter.format(now)
+            val now = java.time.Instant.now()
+            val formatter = java.time.format.DateTimeFormatter
+                .ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+                .withZone(java.time.ZoneOffset.UTC)
 
+            // Determine the range to fetch from the API. If we have data locally
+            // start from the latest entry, otherwise pull the last two weeks.
+            val lastLocalTs = GlucoseStorage.getLatestTimestamp(context)
+            val startInstant = lastLocalTs?.let { java.time.Instant.parse(it).plusSeconds(1) }
+                ?: now.minus(14, java.time.temporal.ChronoUnit.DAYS)
+
+            // Fetch any new entries from the API and append them to local storage
+            try {
                 val uri = ENTRIES_URL.toUri().buildUpon()
-                    .appendQueryParameter("find[dateString][\$gte]", start)
-                    .appendQueryParameter("find[dateString][\$lte]", end)
-                    .appendQueryParameter("count", "1000")
+                    .appendQueryParameter("find[dateString][\$gte]", formatter.format(startInstant))
+                    .appendQueryParameter("find[dateString][\$lte]", formatter.format(now))
+                    .appendQueryParameter("count", "10000")
                     .build()
 
-
                 val url = URL(uri.toString())
-
-
-
                 val conn = url.openConnection() as HttpURLConnection
                 conn.requestMethod = "GET"
 
                 val result = conn.inputStream.bufferedReader().use(BufferedReader::readText)
-
-                var sum = 0f
-                var count = 0
-
-
-                    val jsonArray = JSONArray(result)
-                    for (i in 0 until jsonArray.length()) {
-                        val obj = jsonArray.getJSONObject(i)
-                        val sgv = obj.optDouble("sgv", Double.NaN)
-                        if (!sgv.isNaN()) {
-                            sum += sgv.toFloat()
-                            count++
-                        }
+                val newEntries = mutableListOf<Pair<String, Float>>()
+                val jsonArray = JSONArray(result)
+                for (i in 0 until jsonArray.length()) {
+                    val obj = jsonArray.getJSONObject(i)
+                    val sgv = obj.optDouble("sgv", Double.NaN)
+                    val ts = obj.optString("dateString")
+                    if (!sgv.isNaN() && ts.isNotEmpty()) {
+                        newEntries.add(ts to sgv.toFloat())
                     }
-
-
-                val avg = if (count > 0) sum / count / 18f else Float.NaN
-                withContext(Dispatchers.Main) { callback(avg) }
+                }
+                GlucoseStorage.addEntries(context, newEntries)
             } catch (e: Exception) {
+                // Network failures shouldn't prevent using existing cached data
                 e.printStackTrace()
-                withContext(Dispatchers.Main) { callback(null) }
             }
+
+            // Compute average glucose for the last 24 hours using cached data
+            val entries = GlucoseStorage.getAllEntries(context)
+            val dayAgo = now.minus(1, java.time.temporal.ChronoUnit.DAYS)
+            var sum = 0f
+            var count = 0
+            for ((ts, value) in entries) {
+                val inst = runCatching { java.time.Instant.parse(ts) }.getOrNull() ?: continue
+                if (!inst.isBefore(dayAgo) && !inst.isAfter(now)) {
+                    sum += value
+                    count++
+                }
+            }
+
+            val avg = if (count > 0) sum / count / 18f else Float.NaN
+            withContext(Dispatchers.Main) { callback(avg) }
         }
     }
 
