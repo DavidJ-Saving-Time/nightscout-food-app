@@ -80,6 +80,7 @@ class MainActivity : AppCompatActivity() {
                         binding.mealsLayout.visibility = View.GONE
                         binding.insulinLayout.visibility = View.GONE
                         binding.nightscoutLayout.visibility = View.VISIBLE
+                        loadAverageGlucose()
                     }
                 }
             }
@@ -172,6 +173,18 @@ class MainActivity : AppCompatActivity() {
                     insulinAdapter.submitList(it)
                     updateLastScanText(it)
                 }
+            }
+        }
+    }
+
+    private fun loadAverageGlucose() {
+        binding.averageGlucose.text = getString(R.string.average_glucose_placeholder)
+        ApiClient.getAverageGlucose { avg ->
+            runOnUiThread {
+                val text = avg?.let { value ->
+                    if (!value.isNaN()) getString(R.string.average_glucose_format, value) else getString(R.string.average_glucose_placeholder)
+                } ?: getString(R.string.average_glucose_placeholder)
+                binding.averageGlucose.text = text
             }
         }
     }

@@ -14,6 +14,8 @@ import androidx.core.net.toUri
 object ApiClient {
     private const val NIGHTSCOUT_URL = "https://nightscout.atelierdjames.com/api/v1/treatments"
 
+    private const val ENTRIES_URL = "https://nightscout.atelierdjames.com/api/v1/entries/"
+
     private const val TOKEN = "tmp-84524db9b3420d4f"
 
     fun sendTreatment(context: Context, treatment: Treatment, callback: (Boolean) -> Unit) {
@@ -122,6 +124,44 @@ object ApiClient {
                 withContext(Dispatchers.Main) {
                     callback(null)
                 }
+            }
+        }
+    }
+
+    fun getAverageGlucose(callback: (Float?) -> Unit) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val now = java.time.Instant.now()
+                val yesterday = now.minus(1, java.time.temporal.ChronoUnit.DAYS)
+                val formatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+                    .withZone(java.time.ZoneOffset.UTC)
+                val start = formatter.format(yesterday)
+                val end = formatter.format(now)
+                val query = "?find[dateString][\$gte]=$start&find[dateString][\$lte]=$end&count=1000"
+                val url = URL("$ENTRIES_URL$query")
+
+                val conn = url.openConnection() as HttpURLConnection
+                conn.requestMethod = "GET"
+
+                val result = conn.inputStream.bufferedReader().use(BufferedReader::readText)
+                val jsonArray = JSONArray(result)
+
+                var sum = 0f
+                var count = 0
+                for (i in 0 until jsonArray.length()) {
+                    val obj = jsonArray.getJSONObject(i)
+                    val sgv = obj.optDouble("sgv", Double.NaN)
+                    if (!sgv.isNaN()) {
+                        sum += sgv.toFloat()
+                        count++
+                    }
+                }
+
+                val avg = if (count > 0) sum / count / 18f else Float.NaN
+                withContext(Dispatchers.Main) { callback(avg) }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                withContext(Dispatchers.Main) { callback(null) }
             }
         }
     }
