@@ -1,4 +1,5 @@
 import android.content.Context
+import android.net.Uri
 import kotlinx.coroutines.*
 import org.json.JSONArray
 import java.io.BufferedReader
@@ -74,7 +75,14 @@ object ApiClient {
     fun getInsulinInjections(callback: (List<InsulinInjection>?) -> Unit) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val url = URL("$NIGHTSCOUT_URL.json?find%5Binsulin%5D%5B%24gt%5D=0&token=$TOKEN")
+                val uri = Uri.parse(NIGHTSCOUT_URL).buildUpon()
+                    .appendQueryParameter("find[insulin][\$gt]", "0")
+                    .appendQueryParameter("count", "10")
+                    .appendQueryParameter("token", TOKEN)
+                    .build()
+                val url = URL(uri.toString())
+
+
                 val conn = url.openConnection() as HttpURLConnection
                 conn.requestMethod = "GET"
 
@@ -85,7 +93,18 @@ object ApiClient {
                 for (i in 0 until jsonArray.length()) {
                     val obj = jsonArray.getJSONObject(i)
                     val time = obj.optString("created_at")
-                    val injArray = obj.optJSONArray("insulinInjections") ?: JSONArray()
+                    val injField = obj.opt("insulinInjections")
+                    val injArray = when (injField) {
+                        is JSONArray -> injField
+                        is String -> try { JSONArray(injField) } catch (_: Exception) { JSONArray() }
+                        else -> JSONArray()
+                    }
+                    if (injArray.length() == 0 && obj.has("insulin")) {
+                        val units = obj.optDouble("insulin", 0.0).toFloat()
+                        val name = obj.optString("insulinType", "")
+                        injections.add(InsulinInjection(time, name, units))
+                    }
+
                     for (j in 0 until injArray.length()) {
                         val inj = injArray.getJSONObject(j)
                         val name = inj.optString("insulin")

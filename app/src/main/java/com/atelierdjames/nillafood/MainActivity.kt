@@ -94,11 +94,14 @@ class MainActivity : AppCompatActivity() {
                 runOnUiThread {
                     if (success) {
                         Toast.makeText(this, "Sent to Nightscout", Toast.LENGTH_SHORT).show()
-                        loadTreatments() // Refresh list
+                        // loadTreatments() // Refresh list
                     } else {
                         OfflineStorage.saveLocally(this, treatment)
                         Toast.makeText(this, "Offline – saved locally", Toast.LENGTH_LONG).show()
                     }
+
+                    loadTreatments()
+                    resetForm()
                 }
             }
         }
@@ -161,7 +164,14 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+    private fun resetForm() {
+        binding.carbsInput.text?.clear()
+        binding.proteinInput.text?.clear()
+        binding.fatInput.text?.clear()
 
+        calendar.time = Date()
+        binding.timestampInput.setText(sdf.format(calendar.time))
+    }
     private fun showTreatmentDetails(treatment: Treatment) {
         Toast.makeText(this, "Selected: ${treatment.note}", Toast.LENGTH_SHORT).show()
     }
