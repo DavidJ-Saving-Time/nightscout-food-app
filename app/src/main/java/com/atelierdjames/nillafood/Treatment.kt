@@ -9,7 +9,8 @@ data class Treatment(
     val protein: Float,
     val fat: Float,
     val note: String,
-    val timestamp: String = getUtcTimestamp()
+    val timestamp: String = getUtcTimestamp(),
+    val id: String? = null
 ) {
     fun toJson(): JSONObject {
         return JSONObject().apply {
@@ -36,7 +37,8 @@ data class Treatment(
                 protein = json.optDouble("protein", 0.0).toFloat(),
                 fat = json.optDouble("fat", 0.0).toFloat(),
                 note = json.optString("notes", ""),
-                timestamp = json.optString("created_at", "")
+                timestamp = json.optString("created_at", ""),
+                id = json.optString("_id", null)
             )
         }
     }

@@ -50,9 +50,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
-        adapter = TreatmentAdapter { treatment ->
-            showTreatmentDetails(treatment)
-        }
+        adapter = TreatmentAdapter(
+            onItemClick = { treatment -> showTreatmentDetails(treatment) },
+            onDelete = { treatment -> deleteTreatment(treatment) }
+        )
 
         binding.treatmentsRecyclerView.apply {
             layoutManager = LinearLayoutManager(this@MainActivity) // THIS WAS MISSING
@@ -88,5 +89,19 @@ class MainActivity : AppCompatActivity() {
 
     private fun showTreatmentDetails(treatment: Treatment) {
         Toast.makeText(this, "Selected: ${treatment.note}", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun deleteTreatment(treatment: Treatment) {
+        val id = treatment.id ?: return
+        ApiClient.deleteTreatment(id) { success ->
+            runOnUiThread {
+                if (success) {
+                    Toast.makeText(this, "Deleted", Toast.LENGTH_SHORT).show()
+                    loadTreatments()
+                } else {
+                    Toast.makeText(this, "Failed to delete", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
     }
 }

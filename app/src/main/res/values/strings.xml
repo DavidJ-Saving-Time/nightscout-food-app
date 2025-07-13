@@ -3,4 +3,5 @@
     <string name="carbs_format">Carbs: %.1fg</string>
     <string name="protein_format">Protein: %.1fg</string>
     <string name="fat_format">Fat: %.1fg</string>
+    <string name="delete">X</string>
 </resources>
