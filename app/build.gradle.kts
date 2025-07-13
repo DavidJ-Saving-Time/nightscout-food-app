@@ -53,6 +53,18 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     testImplementation(libs.junit)
+
+    // Iconics core + views (keep versions in sync)
+    // core + views modules for Iconics
+    implementation("com.mikepenz:iconics-core:5.5.0-b01")
+    implementation("com.mikepenz:iconics-views:5.5.0-b01")
+
+    // FontAwesome Kotlin artifact
+    implementation("com.mikepenz:fontawesome-typeface:5.13.3.1-kotlin")
+
+    // AppCompat (required by Iconics)
+    implementation("androidx.appcompat:appcompat:1.6.1")
+
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

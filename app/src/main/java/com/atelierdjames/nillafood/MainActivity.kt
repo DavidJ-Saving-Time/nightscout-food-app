@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import android.view.View
-import android.webkit.WebViewClient
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.appcompat.app.AppCompatActivity
@@ -31,10 +30,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        binding.nightscoutWebView.webViewClient = WebViewClient()
-        binding.nightscoutWebView.settings.javaScriptEnabled = true
-        binding.nightscoutWebView.loadUrl("https://nillanova.click/")
 
         binding.timestampInput.setText(sdf.format(calendar.time))
         binding.timestampInput.setOnClickListener {

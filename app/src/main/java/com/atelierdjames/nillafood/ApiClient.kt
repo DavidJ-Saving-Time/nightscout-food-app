@@ -9,6 +9,7 @@ import java.net.URL
 import com.atelierdjames.nillafood.Treatment
 import com.atelierdjames.nillafood.InsulinInjection
 import org.json.JSONObject
+import androidx.core.net.toUri
 
 object ApiClient {
     private const val NIGHTSCOUT_URL = "https://nightscout.atelierdjames.com/api/v1/treatments"
@@ -75,7 +76,7 @@ object ApiClient {
     fun getInsulinInjections(callback: (List<InsulinInjection>?) -> Unit) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val uri = Uri.parse(NIGHTSCOUT_URL).buildUpon()
+                val uri = NIGHTSCOUT_URL.toUri().buildUpon()
                     .appendQueryParameter("find[insulin][\$gt]", "0")
                     .appendQueryParameter("count", "10")
                     .appendQueryParameter("token", TOKEN)
