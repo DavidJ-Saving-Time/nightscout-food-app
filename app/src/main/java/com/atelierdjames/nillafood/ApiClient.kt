@@ -6,6 +6,8 @@ import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
 import com.atelierdjames.nillafood.Treatment
+import com.atelierdjames.nillafood.InsulinInjection
+import org.json.JSONObject
 
 object ApiClient {
     private const val NIGHTSCOUT_URL = "https://nightscout.atelierdjames.com/api/v1/treatments"
@@ -59,6 +61,41 @@ object ApiClient {
 
                 withContext(Dispatchers.Main) {
                     callback(treatments)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                withContext(Dispatchers.Main) {
+                    callback(null)
+                }
+            }
+        }
+    }
+
+    fun getInsulinInjections(callback: (List<InsulinInjection>?) -> Unit) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val url = URL("$NIGHTSCOUT_URL.json?find%5Binsulin%5D%5B%24gt%5D=0&token=$TOKEN")
+                val conn = url.openConnection() as HttpURLConnection
+                conn.requestMethod = "GET"
+
+                val result = conn.inputStream.bufferedReader().use(BufferedReader::readText)
+                val jsonArray = JSONArray(result)
+
+                val injections = mutableListOf<InsulinInjection>()
+                for (i in 0 until jsonArray.length()) {
+                    val obj = jsonArray.getJSONObject(i)
+                    val time = obj.optString("created_at")
+                    val injArray = obj.optJSONArray("insulinInjections") ?: JSONArray()
+                    for (j in 0 until injArray.length()) {
+                        val inj = injArray.getJSONObject(j)
+                        val name = inj.optString("insulin")
+                        val units = inj.optDouble("units", 0.0).toFloat()
+                        injections.add(InsulinInjection(time, name, units))
+                    }
+                }
+
+                withContext(Dispatchers.Main) {
+                    callback(injections)
                 }
             } catch (e: Exception) {
                 e.printStackTrace()

@@ -5,16 +5,21 @@ import android.app.TimePickerDialog
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
+import android.view.View
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.tabs.TabLayout
 import com.atelierdjames.nillafood.databinding.ActivityMainBinding
+import com.atelierdjames.nillafood.InsulinAdapter
+import com.atelierdjames.nillafood.InsulinInjection
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var adapter: TreatmentAdapter
+    private lateinit var insulinAdapter: InsulinAdapter
     private val TAG = "MainActivity"
     private val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
     private val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US).apply {
@@ -53,8 +58,24 @@ class MainActivity : AppCompatActivity() {
             ).show()
         }
 
-        setupRecyclerView()
+        setupMealRecyclerView()
+        setupInsulinRecyclerView()
+        loadInsulinTreatments()
         loadTreatments()
+
+        binding.tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: TabLayout.Tab) {
+                if (tab.position == 0) {
+                    binding.mealsLayout.visibility = View.VISIBLE
+                    binding.insulinLayout.visibility = View.GONE
+                } else {
+                    binding.mealsLayout.visibility = View.GONE
+                    binding.insulinLayout.visibility = View.VISIBLE
+                }
+            }
+            override fun onTabUnselected(tab: TabLayout.Tab) {}
+            override fun onTabReselected(tab: TabLayout.Tab) {}
+        })
 
         binding.submitButton.setOnClickListener {
             val carbs = binding.carbsInput.text.toString().toFloatOrNull()
@@ -85,7 +106,7 @@ class MainActivity : AppCompatActivity() {
         OfflineStorage.retryUnsyncedData(this)
     }
 
-    private fun setupRecyclerView() {
+    private fun setupMealRecyclerView() {
         adapter = TreatmentAdapter(
             onItemClick = { treatment -> showTreatmentDetails(treatment) },
             onDelete = { treatment -> deleteTreatment(treatment) }
@@ -104,6 +125,14 @@ class MainActivity : AppCompatActivity() {
         Log.d(TAG, "RecyclerView setup complete")
     }
 
+    private fun setupInsulinRecyclerView() {
+        insulinAdapter = InsulinAdapter()
+        binding.insulinRecyclerView.apply {
+            layoutManager = LinearLayoutManager(this@MainActivity)
+            adapter = insulinAdapter
+        }
+    }
+
     private fun loadTreatments() {
         Log.d(TAG, "Loading treatments...")
         ApiClient.getRecentTreatments { result ->
@@ -118,6 +147,16 @@ class MainActivity : AppCompatActivity() {
                         "Failed to load treatments",
                         Toast.LENGTH_SHORT
                     ).show()
+                }
+            }
+        }
+    }
+
+    private fun loadInsulinTreatments() {
+        ApiClient.getInsulinInjections { result ->
+            runOnUiThread {
+                result?.let {
+                    insulinAdapter.submitList(it)
                 }
             }
         }
