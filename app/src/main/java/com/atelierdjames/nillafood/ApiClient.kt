@@ -65,4 +65,24 @@ object ApiClient {
             }
         }
     }
+
+    fun deleteTreatment(id: String, callback: (Boolean) -> Unit) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val url = URL("$NIGHTSCOUT_URL/$id?token=$TOKEN")
+                val conn = url.openConnection() as HttpURLConnection
+                conn.requestMethod = "DELETE"
+
+                val success = conn.responseCode in 200..299
+                withContext(Dispatchers.Main) {
+                    callback(success)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                withContext(Dispatchers.Main) {
+                    callback(false)
+                }
+            }
+        }
+    }
 }

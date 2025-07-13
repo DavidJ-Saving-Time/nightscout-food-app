@@ -11,7 +11,8 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 class TreatmentAdapter(
-    private val onItemClick: (Treatment) -> Unit = {} // Optional click listener
+    private val onItemClick: (Treatment) -> Unit = {}, // Optional click listener
+    private val onDelete: (Treatment) -> Unit = {}
 ) : RecyclerView.Adapter<TreatmentAdapter.ViewHolder>() {
 
     private val items = mutableListOf<Treatment>()
@@ -21,8 +22,14 @@ class TreatmentAdapter(
         val diffResult = DiffUtil.calculateDiff(object : DiffUtil.Callback() {
             override fun getOldListSize() = items.size
             override fun getNewListSize() = newList.size
-            override fun areItemsTheSame(oldPos: Int, newPos: Int) =
-                items[oldPos].timestamp == newList[newPos].timestamp
+            override fun areItemsTheSame(oldPos: Int, newPos: Int): Boolean {
+                val oldItem = items[oldPos]
+                val newItem = newList[newPos]
+                return when {
+                    oldItem.id != null && newItem.id != null -> oldItem.id == newItem.id
+                    else -> oldItem.timestamp == newItem.timestamp
+                }
+            }
             override fun areContentsTheSame(oldPos: Int, newPos: Int) =
                 items[oldPos] == newList[newPos]
         })
@@ -37,6 +44,7 @@ class TreatmentAdapter(
         private val fatText: TextView = itemView.findViewById(R.id.fatText)
         private val noteText: TextView = itemView.findViewById(R.id.noteText)
         private val createdAtText: TextView = itemView.findViewById(R.id.createdAtText)
+        private val deleteButton: View = itemView.findViewById(R.id.deleteButton)
 
         fun bind(treatment: Treatment) {
             carbsText.text = itemView.context.getString(R.string.carbs_format, treatment.carbs)
@@ -46,6 +54,7 @@ class TreatmentAdapter(
             createdAtText.text = formatDate(treatment.timestamp)
 
             itemView.setOnClickListener { onItemClick(treatment) }
+            deleteButton.setOnClickListener { onDelete(treatment) }
         }
 
         private fun formatDate(isoDate: String): String {
