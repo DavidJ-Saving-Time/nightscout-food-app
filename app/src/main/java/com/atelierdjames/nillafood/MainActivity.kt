@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import android.view.View
+import android.webkit.WebViewClient
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.appcompat.app.AppCompatActivity
@@ -30,6 +31,10 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        binding.nightscoutWebView.webViewClient = WebViewClient()
+        binding.nightscoutWebView.settings.javaScriptEnabled = true
+        binding.nightscoutWebView.loadUrl("https://nillanova.click/")
 
         binding.timestampInput.setText(sdf.format(calendar.time))
         binding.timestampInput.setOnClickListener {
@@ -65,12 +70,22 @@ class MainActivity : AppCompatActivity() {
 
         binding.tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab) {
-                if (tab.position == 0) {
-                    binding.mealsLayout.visibility = View.VISIBLE
-                    binding.insulinLayout.visibility = View.GONE
-                } else {
-                    binding.mealsLayout.visibility = View.GONE
-                    binding.insulinLayout.visibility = View.VISIBLE
+                when (tab.position) {
+                    0 -> {
+                        binding.mealsLayout.visibility = View.VISIBLE
+                        binding.insulinLayout.visibility = View.GONE
+                        binding.nightscoutLayout.visibility = View.GONE
+                    }
+                    1 -> {
+                        binding.mealsLayout.visibility = View.GONE
+                        binding.insulinLayout.visibility = View.VISIBLE
+                        binding.nightscoutLayout.visibility = View.GONE
+                    }
+                    else -> {
+                        binding.mealsLayout.visibility = View.GONE
+                        binding.insulinLayout.visibility = View.GONE
+                        binding.nightscoutLayout.visibility = View.VISIBLE
+                    }
                 }
             }
             override fun onTabUnselected(tab: TabLayout.Tab) {}
