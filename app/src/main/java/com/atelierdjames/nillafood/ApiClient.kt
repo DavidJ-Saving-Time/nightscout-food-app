@@ -41,7 +41,7 @@ object ApiClient {
     fun getRecentTreatments(callback: (List<Treatment>?) -> Unit) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val url = URL("$NIGHTSCOUT_URL?count=10&token=$TOKEN")
+                val url = URL("$NIGHTSCOUT_URL?count=10&find[eventType]=Meal%20Entry&token=$TOKEN")
                 val conn = url.openConnection() as HttpURLConnection
                 conn.requestMethod = "GET"
 

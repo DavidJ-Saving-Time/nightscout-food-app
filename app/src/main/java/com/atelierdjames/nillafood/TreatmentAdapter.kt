@@ -9,7 +9,7 @@ import androidx.recyclerview.widget.DiffUtil
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-
+// hello
 class TreatmentAdapter(
     private val onItemClick: (Treatment) -> Unit = {}, // Optional click listener
     private val onDelete: (Treatment) -> Unit = {}
