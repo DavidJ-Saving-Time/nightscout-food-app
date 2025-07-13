@@ -137,23 +137,38 @@ object ApiClient {
                     .withZone(java.time.ZoneOffset.UTC)
                 val start = formatter.format(yesterday)
                 val end = formatter.format(now)
-                val query = "?find[dateString][\$gte]=$start&find[dateString][\$lte]=$end&count=1000"
+                val query = "?find[dateString][\$gte]=$start&find[dateString][\$lte]=$end&count=1000&token=$TOKEN"
                 val url = URL("$ENTRIES_URL$query")
 
                 val conn = url.openConnection() as HttpURLConnection
                 conn.requestMethod = "GET"
 
                 val result = conn.inputStream.bufferedReader().use(BufferedReader::readText)
-                val jsonArray = JSONArray(result)
 
                 var sum = 0f
                 var count = 0
-                for (i in 0 until jsonArray.length()) {
-                    val obj = jsonArray.getJSONObject(i)
-                    val sgv = obj.optDouble("sgv", Double.NaN)
-                    if (!sgv.isNaN()) {
-                        sum += sgv.toFloat()
-                        count++
+
+                if (result.trim().startsWith("[")) {
+                    val jsonArray = JSONArray(result)
+                    for (i in 0 until jsonArray.length()) {
+                        val obj = jsonArray.getJSONObject(i)
+                        val sgv = obj.optDouble("sgv", Double.NaN)
+                        if (!sgv.isNaN()) {
+                            sum += sgv.toFloat()
+                            count++
+                        }
+                    }
+                } else {
+                    val lines = result.trim().split('\n')
+                    for (line in lines) {
+                        val fields = line.split('\t')
+                        if (fields.size >= 3) {
+                            val sgv = fields[2].trim('"').toFloatOrNull()
+                            if (sgv != null) {
+                                sum += sgv
+                                count++
+                            }
+                        }
                     }
                 }
 
