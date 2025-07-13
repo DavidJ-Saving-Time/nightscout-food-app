@@ -51,7 +51,10 @@ object ApiClient {
                 val treatments = mutableListOf<Treatment>()
                 for (i in 0 until jsonArray.length()) {
                     val jsonObject = jsonArray.getJSONObject(i)
-                    treatments.add(Treatment.fromJson(jsonObject))
+                    val eventType = jsonObject.optString("eventType")
+                    if (eventType == "Meal Entry") {
+                        treatments.add(Treatment.fromJson(jsonObject))
+                    }
                 }
 
                 withContext(Dispatchers.Main) {
