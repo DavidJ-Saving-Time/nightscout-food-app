@@ -179,7 +179,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun loadAverageGlucose() {
         binding.averageGlucose.text = getString(R.string.average_glucose_placeholder)
-        ApiClient.getAverageGlucose { avg ->
+        ApiClient.getAverageGlucose(this) { avg ->
             runOnUiThread {
                 val text = avg?.let { value ->
                     if (!value.isNaN()) getString(R.string.average_glucose_format, value) else getString(R.string.average_glucose_placeholder)
