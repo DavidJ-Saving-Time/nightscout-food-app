@@ -14,7 +14,7 @@ import androidx.core.net.toUri
 object ApiClient {
     private const val NIGHTSCOUT_URL = "https://nightscout.atelierdjames.com/api/v1/treatments"
 
-    private const val ENTRIES_URL = "https://nightscout.atelierdjames.com/api/v1/entries/"
+    private const val ENTRIES_URL = "https://nightscout.atelierdjames.com/api/v1/entries.json"
 
     private const val TOKEN = "tmp-84524db9b3420d4f"
 
@@ -137,8 +137,17 @@ object ApiClient {
                     .withZone(java.time.ZoneOffset.UTC)
                 val start = formatter.format(yesterday)
                 val end = formatter.format(now)
-                val query = "?find[dateString][\$gte]=$start&find[dateString][\$lte]=$end&count=1000&token=$TOKEN"
-                val url = URL("$ENTRIES_URL$query")
+
+                val uri = ENTRIES_URL.toUri().buildUpon()
+                    .appendQueryParameter("find[dateString][\$gte]", start)
+                    .appendQueryParameter("find[dateString][\$lte]", end)
+                    .appendQueryParameter("count", "1000")
+                    .build()
+
+
+                val url = URL(uri.toString())
+
+
 
                 val conn = url.openConnection() as HttpURLConnection
                 conn.requestMethod = "GET"
@@ -148,7 +157,7 @@ object ApiClient {
                 var sum = 0f
                 var count = 0
 
-                if (result.trim().startsWith("[")) {
+
                     val jsonArray = JSONArray(result)
                     for (i in 0 until jsonArray.length()) {
                         val obj = jsonArray.getJSONObject(i)
@@ -158,19 +167,7 @@ object ApiClient {
                             count++
                         }
                     }
-                } else {
-                    val lines = result.trim().split('\n')
-                    for (line in lines) {
-                        val fields = line.split('\t')
-                        if (fields.size >= 3) {
-                            val sgv = fields[2].trim('"').toFloatOrNull()
-                            if (sgv != null) {
-                                sum += sgv
-                                count++
-                            }
-                        }
-                    }
-                }
+
 
                 val avg = if (count > 0) sum / count / 18f else Float.NaN
                 withContext(Dispatchers.Main) { callback(avg) }
