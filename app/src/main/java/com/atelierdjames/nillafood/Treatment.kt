@@ -25,7 +25,7 @@ data class Treatment(
     }
 
     companion object {
-        private fun getUtcTimestamp(): String {
+        fun getUtcTimestamp(): String {
             val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
             sdf.timeZone = TimeZone.getTimeZone("UTC")
             return sdf.format(Date())
