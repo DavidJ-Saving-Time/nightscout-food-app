@@ -188,6 +188,98 @@ object ApiClient {
         }
     }
 
+    fun getGlucoseStats(context: Context, callback: (GlucoseStats?) -> Unit) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val now = java.time.Instant.now()
+            val formatter = java.time.format.DateTimeFormatter
+                .ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+                .withZone(java.time.ZoneOffset.UTC)
+
+            val lastLocalTs = GlucoseStorage.getLatestTimestamp(context)
+            val startInstant = lastLocalTs?.let { java.time.Instant.parse(it).plusSeconds(1) }
+                ?: now.minus(14, java.time.temporal.ChronoUnit.DAYS)
+
+            try {
+                val uri = ENTRIES_URL.toUri().buildUpon()
+                    .appendQueryParameter("find[dateString][\$gte]", formatter.format(startInstant))
+                    .appendQueryParameter("find[dateString][\$lte]", formatter.format(now))
+                    .appendQueryParameter("count", "10000")
+                    .build()
+
+                val url = URL(uri.toString())
+                val conn = url.openConnection() as HttpURLConnection
+                conn.requestMethod = "GET"
+
+                val result = conn.inputStream.bufferedReader().use(BufferedReader::readText)
+                val newEntries = mutableListOf<Pair<String, Float>>()
+                val jsonArray = JSONArray(result)
+                for (i in 0 until jsonArray.length()) {
+                    val obj = jsonArray.getJSONObject(i)
+                    val sgv = obj.optDouble("sgv", Double.NaN)
+                    val ts = obj.optString("dateString")
+                    if (!sgv.isNaN() && ts.isNotEmpty()) {
+                        newEntries.add(ts to sgv.toFloat())
+                    }
+                }
+                GlucoseStorage.addEntries(context, newEntries)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+
+            val entries = GlucoseStorage.getAllEntries(context)
+
+            fun avgFor(days: Long): Float {
+                val start = now.minus(days, java.time.temporal.ChronoUnit.DAYS)
+                var sum = 0f
+                var count = 0
+                for ((ts, value) in entries) {
+                    val inst = runCatching { java.time.Instant.parse(ts) }.getOrNull() ?: continue
+                    if (!inst.isBefore(start) && !inst.isAfter(now)) {
+                        sum += value
+                        count++
+                    }
+                }
+                return if (count > 0) sum / count / 18f else Float.NaN
+            }
+
+            fun tirFor(days: Long): TimeInRange {
+                val low = 3.8f * 18f
+                val high = 9.5f * 18f
+                val start = now.minus(days, java.time.temporal.ChronoUnit.DAYS)
+                var inRange = 0
+                var above = 0
+                var below = 0
+                for ((ts, value) in entries) {
+                    val inst = runCatching { java.time.Instant.parse(ts) }.getOrNull() ?: continue
+                    if (inst.isBefore(start) || inst.isAfter(now)) continue
+                    when {
+                        value < low -> below++
+                        value > high -> above++
+                        else -> inRange++
+                    }
+                }
+                val total = inRange + above + below
+                if (total == 0) return TimeInRange(0f, 0f, 0f)
+                return TimeInRange(
+                    inRange * 100f / total,
+                    above * 100f / total,
+                    below * 100f / total
+                )
+            }
+
+            val stats = GlucoseStats(
+                avg24h = avgFor(1),
+                avg7d = avgFor(7),
+                avg14d = avgFor(14),
+                tir24h = tirFor(1),
+                tir7d = tirFor(7),
+                tir14d = tirFor(14)
+            )
+
+            withContext(Dispatchers.Main) { callback(stats) }
+        }
+    }
+
     fun deleteTreatment(id: String, callback: (Boolean) -> Unit) {
         CoroutineScope(Dispatchers.IO).launch {
             try {

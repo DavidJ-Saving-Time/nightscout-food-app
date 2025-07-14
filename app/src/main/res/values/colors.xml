@@ -10,4 +10,7 @@
     <color name="red">#e54c0d</color>
     <color name="your_button_color">#4ee50d</color>
     <color name="your_text_color">#FFFFFF</color>
+    <color name="tir_in_range">#4CAF50</color>
+    <color name="tir_above">#F44336</color>
+    <color name="tir_below">#2196F3</color>
 </resources>
