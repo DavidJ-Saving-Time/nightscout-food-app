@@ -5,7 +5,7 @@ import androidx.room.RoomDatabase
 
 @Database(
     entities = [GlucoseEntry::class, TreatmentEntity::class, InsulinInjectionEntity::class],
-    version = 4
+    version = 5
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun glucoseDao(): GlucoseDao
