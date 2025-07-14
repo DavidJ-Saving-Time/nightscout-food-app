@@ -85,16 +85,17 @@ object ApiClient {
         }
     }
 
-    fun getInsulinInjections(callback: (List<InsulinInjection>?) -> Unit) {
+    fun getInsulinInjections(context: Context, callback: (List<InsulinInjection>?) -> Unit) {
         CoroutineScope(Dispatchers.IO).launch {
+            val lastLocal = InsulinInjectionStorage.getLatestTimestamp(context)
             try {
                 val uri = NIGHTSCOUT_URL.toUri().buildUpon()
                     .appendQueryParameter("find[insulin][\$gt]", "0")
-                    .appendQueryParameter("count", "10")
+                    .appendQueryParameter("count", "100")
                     .appendQueryParameter("token", TOKEN)
+                    .apply { lastLocal?.let { appendQueryParameter("find[created_at][\$gt]", it) } }
                     .build()
                 val url = URL(uri.toString())
-
 
                 val conn = url.openConnection() as HttpURLConnection
                 conn.requestMethod = "GET"
@@ -102,7 +103,7 @@ object ApiClient {
                 val result = conn.inputStream.bufferedReader().use(BufferedReader::readText)
                 val jsonArray = JSONArray(result)
 
-                val injections = mutableListOf<InsulinInjection>()
+                val newInjections = mutableListOf<InsulinInjection>()
                 for (i in 0 until jsonArray.length()) {
                     val obj = jsonArray.getJSONObject(i)
                     val time = obj.optString("created_at")
@@ -115,26 +116,23 @@ object ApiClient {
                     if (injArray.length() == 0 && obj.has("insulin")) {
                         val units = obj.optDouble("insulin", 0.0).toFloat()
                         val name = obj.optString("insulinType", "")
-                        injections.add(InsulinInjection(time, name, units))
+                        newInjections.add(InsulinInjection(time, name, units))
                     }
 
                     for (j in 0 until injArray.length()) {
                         val inj = injArray.getJSONObject(j)
                         val name = inj.optString("insulin")
                         val units = inj.optDouble("units", 0.0).toFloat()
-                        injections.add(InsulinInjection(time, name, units))
+                        newInjections.add(InsulinInjection(time, name, units))
                     }
                 }
-
-                withContext(Dispatchers.Main) {
-                    callback(injections)
-                }
+                InsulinInjectionStorage.addAll(context, newInjections)
             } catch (e: Exception) {
                 e.printStackTrace()
-                withContext(Dispatchers.Main) {
-                    callback(null)
-                }
             }
+
+            val all = InsulinInjectionStorage.getAll(context)
+            withContext(Dispatchers.Main) { callback(all) }
         }
     }
 

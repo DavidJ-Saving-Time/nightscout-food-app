@@ -106,9 +106,6 @@ class MainActivity : AppCompatActivity() {
                     if (success) {
                         Toast.makeText(this, "Sent to Nightscout", Toast.LENGTH_SHORT).show()
                         // loadTreatments() // Refresh list
-                    } else {
-                        OfflineStorage.saveLocally(this, treatment)
-                        Toast.makeText(this, "Offline – saved locally", Toast.LENGTH_LONG).show()
                     }
 
                     loadTreatments()
@@ -116,8 +113,9 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-
-        OfflineStorage.retryUnsyncedData(this)
+        binding.refreshMealsButton.setOnClickListener { loadTreatments() }
+        binding.refreshInsulinButton.setOnClickListener { loadInsulinTreatments() }
+        binding.refreshStatsButton.setOnClickListener { loadStats() }
     }
 
     private fun setupMealRecyclerView() {
@@ -167,7 +165,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun loadInsulinTreatments() {
-        ApiClient.getInsulinInjections { result ->
+        ApiClient.getInsulinInjections(this) { result ->
             runOnUiThread {
                 result?.let {
                     insulinAdapter.submitList(it)

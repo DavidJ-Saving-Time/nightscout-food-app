@@ -189,6 +189,12 @@
             android:clipToPadding="false"
             android:paddingBottom="16dp"/>
 
+        <Button
+            android:id="@+id/refreshMealsButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/refresh" />
+
     </LinearLayout>
 
     <LinearLayout
@@ -214,7 +220,14 @@
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/insulinRecyclerView"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <Button
+            android:id="@+id/refreshInsulinButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/refresh" />
 
     </LinearLayout>
 
@@ -270,6 +283,12 @@
             android:textAlignment="center"
             android:textSize="16sp"
             android:padding="8dp" />
+
+        <Button
+            android:id="@+id/refreshStatsButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/refresh" />
 
         <TextView
             android:layout_width="match_parent"
