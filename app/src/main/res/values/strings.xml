@@ -21,7 +21,4 @@
     <string name="hba1c_format">Est. HbA1c: %.1f mmol/mol</string>
     <string name="sd_format">SD: %.1f mmol/L</string>
     <string name="refresh">Refresh</string>
-    <string name="current_iob_format">Current IOB: %.1fU</string>
-    <string name="average_spike_format">Average Spike: %.1f</string>
-    <string name="meal_summary_format">Meal %1$.0fg Δ%2$.1f</string>
 </resources>
