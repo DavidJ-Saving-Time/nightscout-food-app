@@ -1,0 +1,18 @@
+package com.atelierdjames.nillafood
+
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+
+@Dao
+interface GlucoseDao {
+    @Query("SELECT * FROM glucose_entries")
+    suspend fun getAll(): List<GlucoseEntry>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(entries: List<GlucoseEntry>)
+
+    @Query("SELECT timestamp FROM glucose_entries ORDER BY timestamp DESC LIMIT 1")
+    suspend fun getLatestTimestamp(): String?
+}
