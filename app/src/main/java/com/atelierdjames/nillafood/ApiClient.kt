@@ -8,8 +8,11 @@ import java.net.HttpURLConnection
 import java.net.URL
 import com.atelierdjames.nillafood.Treatment
 import com.atelierdjames.nillafood.InsulinInjection
+import com.atelierdjames.nillafood.GlucoseStats
+import com.atelierdjames.nillafood.GlucoseStorage
 import org.json.JSONObject
 import androidx.core.net.toUri
+import com.atelierdjames.nillafood.TimeInRange
 
 object ApiClient {
     private const val NIGHTSCOUT_URL = "https://nightscout.atelierdjames.com/api/v1/treatments"
