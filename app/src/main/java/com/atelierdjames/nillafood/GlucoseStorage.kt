@@ -1,35 +1,35 @@
 package com.atelierdjames.nillafood
 
 import android.content.Context
+import androidx.room.Room
 
 object GlucoseStorage {
-    private const val PREFS = "glucose_store"
-    private const val KEY_ENTRIES = "entries"
+    private const val DB_NAME = "app-db"
 
-    private fun prefs(context: Context) =
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+    @Volatile
+    private var INSTANCE: AppDatabase? = null
 
-    fun getAllEntries(context: Context): List<Pair<String, Float>> {
-        val set = prefs(context).getStringSet(KEY_ENTRIES, emptySet()) ?: emptySet()
-        return set.mapNotNull { entry ->
-            val parts = entry.split("|")
-            val value = parts.getOrNull(1)?.toFloatOrNull()
-            val ts = parts.getOrNull(0)
-            if (ts != null && value != null) ts to value else null
+    private fun db(context: Context): AppDatabase {
+        return INSTANCE ?: synchronized(this) {
+            INSTANCE ?: Room.databaseBuilder(
+                context.applicationContext,
+                AppDatabase::class.java,
+                DB_NAME
+            ).build().also { INSTANCE = it }
         }
     }
 
-    fun addEntries(context: Context, entries: List<Pair<String, Float>>) {
+    suspend fun getAllEntries(context: Context): List<Pair<String, Float>> {
+        return db(context).glucoseDao().getAll().map { it.timestamp to it.value }
+    }
+
+    suspend fun addEntries(context: Context, entries: List<Pair<String, Float>>) {
         if (entries.isEmpty()) return
-        val p = prefs(context)
-        val set = p.getStringSet(KEY_ENTRIES, mutableSetOf())?.toMutableSet() ?: mutableSetOf()
-        for (e in entries) {
-            set.add("${e.first}|${e.second}")
-        }
-        p.edit().putStringSet(KEY_ENTRIES, set).apply()
+        val list = entries.map { GlucoseEntry(it.first, it.second) }
+        db(context).glucoseDao().insertAll(list)
     }
 
-    fun getLatestTimestamp(context: Context): String? {
-        return getAllEntries(context).maxByOrNull { it.first }?.first
+    suspend fun getLatestTimestamp(context: Context): String? {
+        return db(context).glucoseDao().getLatestTimestamp()
     }
 }
