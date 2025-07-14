@@ -12,5 +12,7 @@ data class GlucoseStats(
     val avg14d: Float,
     val tir24h: TimeInRange,
     val tir7d: TimeInRange,
-    val tir14d: TimeInRange
+    val tir14d: TimeInRange,
+    val hba1c: Float,
+    val sd: Float
 )

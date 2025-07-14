@@ -270,13 +270,36 @@ object ApiClient {
                 )
             }
 
+            // Overall metrics using all stored values
+            var overallSum = 0f
+            var overallCount = 0
+            for ((_, v) in entries) {
+                overallSum += v
+                overallCount++
+            }
+            val overallAvgMgdl = if (overallCount > 0) overallSum / overallCount else Float.NaN
+            var variance = 0f
+            if (overallCount > 0) {
+                for ((_, v) in entries) {
+                    variance += (v - overallAvgMgdl) * (v - overallAvgMgdl)
+                }
+                variance /= overallCount
+            } else {
+                variance = Float.NaN
+            }
+            val sd = if (!variance.isNaN()) kotlin.math.sqrt(variance.toDouble()).toFloat() / 18f else Float.NaN
+            val hba1cPercent = if (!overallAvgMgdl.isNaN()) (overallAvgMgdl + 46.7f) / 28.7f else Float.NaN
+            val hba1cMmolMol = if (!hba1cPercent.isNaN()) hba1cPercent * 10.93f else Float.NaN
+
             val stats = GlucoseStats(
                 avg24h = avgFor(1),
                 avg7d = avgFor(7),
                 avg14d = avgFor(14),
                 tir24h = tirFor(1),
                 tir7d = tirFor(7),
-                tir14d = tirFor(14)
+                tir14d = tirFor(14),
+                hba1c = hba1cMmolMol,
+                sd = sd
             )
 
             withContext(Dispatchers.Main) { callback(stats) }
