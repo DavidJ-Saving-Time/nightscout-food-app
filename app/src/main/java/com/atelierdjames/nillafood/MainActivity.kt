@@ -181,6 +181,8 @@ class MainActivity : AppCompatActivity() {
         binding.averageGlucose.text = getString(R.string.average_glucose_placeholder)
         binding.averageGlucose7.text = getString(R.string.average_glucose_placeholder)
         binding.averageGlucose14.text = getString(R.string.average_glucose_placeholder)
+        binding.hba1cText.text = getString(R.string.hba1c_placeholder)
+        binding.sdText.text = getString(R.string.sd_placeholder)
 
         ApiClient.getGlucoseStats(this) { result ->
             runOnUiThread {
@@ -189,6 +191,8 @@ class MainActivity : AppCompatActivity() {
                     binding.averageGlucose.text = if (!stats.avg24h.isNaN()) getString(R.string.average_glucose_format, stats.avg24h) else placeholder
                     binding.averageGlucose7.text = if (!stats.avg7d.isNaN()) getString(R.string.average_glucose_7d_format, stats.avg7d) else placeholder
                     binding.averageGlucose14.text = if (!stats.avg14d.isNaN()) getString(R.string.average_glucose_14d_format, stats.avg14d) else placeholder
+                    binding.hba1cText.text = if (!stats.hba1c.isNaN()) getString(R.string.hba1c_format, stats.hba1c) else getString(R.string.hba1c_placeholder)
+                    binding.sdText.text = if (!stats.sd.isNaN()) getString(R.string.sd_format, stats.sd) else getString(R.string.sd_placeholder)
                     setupPieChart(binding.pie24h, stats.tir24h)
                     setupPieChart(binding.pie7d, stats.tir7d)
                     setupPieChart(binding.pie14d, stats.tir14d)

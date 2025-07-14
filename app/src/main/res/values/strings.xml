@@ -16,4 +16,8 @@
     <string name="time_in_range_24h">Time in Range (24h)</string>
     <string name="time_in_range_7d">Time in Range (7d)</string>
     <string name="time_in_range_14d">Time in Range (14d)</string>
+    <string name="hba1c_placeholder">HbA1c loading...</string>
+    <string name="sd_placeholder">SD loading...</string>
+    <string name="hba1c_format">Est. HbA1c: %.1f mmol/mol</string>
+    <string name="sd_format">SD: %.1f mmol/L</string>
 </resources>

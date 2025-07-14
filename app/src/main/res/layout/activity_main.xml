@@ -254,6 +254,24 @@
             android:padding="8dp" />
 
         <TextView
+            android:id="@+id/hba1cText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/hba1c_placeholder"
+            android:textAlignment="center"
+            android:textSize="16sp"
+            android:padding="8dp" />
+
+        <TextView
+            android:id="@+id/sdText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/sd_placeholder"
+            android:textAlignment="center"
+            android:textSize="16sp"
+            android:padding="8dp" />
+
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/time_in_range_24h"
