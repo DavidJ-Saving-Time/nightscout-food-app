@@ -235,6 +235,60 @@
             android:textSize="16sp"
             android:padding="8dp" />
 
+        <TextView
+            android:id="@+id/averageGlucose7"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/average_glucose_placeholder"
+            android:textAlignment="center"
+            android:textSize="16sp"
+            android:padding="8dp" />
+
+        <TextView
+            android:id="@+id/averageGlucose14"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/average_glucose_placeholder"
+            android:textAlignment="center"
+            android:textSize="16sp"
+            android:padding="8dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/time_in_range_24h"
+            android:textAlignment="center"
+            android:paddingTop="8dp" />
+
+        <com.github.mikephil.charting.charts.PieChart
+            android:id="@+id/pie24h"
+            android:layout_width="match_parent"
+            android:layout_height="150dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/time_in_range_7d"
+            android:textAlignment="center"
+            android:paddingTop="8dp" />
+
+        <com.github.mikephil.charting.charts.PieChart
+            android:id="@+id/pie7d"
+            android:layout_width="match_parent"
+            android:layout_height="150dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/time_in_range_14d"
+            android:textAlignment="center"
+            android:paddingTop="8dp" />
+
+        <com.github.mikephil.charting.charts.PieChart
+            android:id="@+id/pie14d"
+            android:layout_width="match_parent"
+            android:layout_height="150dp" />
+
     </LinearLayout>
 
 </LinearLayout>

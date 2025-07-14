@@ -62,6 +62,8 @@ dependencies {
     // FontAwesome Kotlin artifact
     implementation("com.mikepenz:fontawesome-typeface:5.13.3.1-kotlin")
 
+    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
+
     // AppCompat (required by Iconics)
     implementation("androidx.appcompat:appcompat:1.6.1")
 

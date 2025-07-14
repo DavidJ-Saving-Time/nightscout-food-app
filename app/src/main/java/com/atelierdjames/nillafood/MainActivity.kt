@@ -80,7 +80,7 @@ class MainActivity : AppCompatActivity() {
                         binding.mealsLayout.visibility = View.GONE
                         binding.insulinLayout.visibility = View.GONE
                         binding.nightscoutLayout.visibility = View.VISIBLE
-                        loadAverageGlucose()
+                        loadStats()
                     }
                 }
             }
@@ -177,16 +177,44 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun loadAverageGlucose() {
+    private fun loadStats() {
         binding.averageGlucose.text = getString(R.string.average_glucose_placeholder)
-        ApiClient.getAverageGlucose(this) { avg ->
+        binding.averageGlucose7.text = getString(R.string.average_glucose_placeholder)
+        binding.averageGlucose14.text = getString(R.string.average_glucose_placeholder)
+
+        ApiClient.getGlucoseStats(this) { result ->
             runOnUiThread {
-                val text = avg?.let { value ->
-                    if (!value.isNaN()) getString(R.string.average_glucose_format, value) else getString(R.string.average_glucose_placeholder)
-                } ?: getString(R.string.average_glucose_placeholder)
-                binding.averageGlucose.text = text
+                result?.let { stats ->
+                    val placeholder = getString(R.string.average_glucose_placeholder)
+                    binding.averageGlucose.text = if (!stats.avg24h.isNaN()) getString(R.string.average_glucose_format, stats.avg24h) else placeholder
+                    binding.averageGlucose7.text = if (!stats.avg7d.isNaN()) getString(R.string.average_glucose_7d_format, stats.avg7d) else placeholder
+                    binding.averageGlucose14.text = if (!stats.avg14d.isNaN()) getString(R.string.average_glucose_14d_format, stats.avg14d) else placeholder
+                    setupPieChart(binding.pie24h, stats.tir24h)
+                    setupPieChart(binding.pie7d, stats.tir7d)
+                    setupPieChart(binding.pie14d, stats.tir14d)
+                }
             }
         }
+    }
+
+    private fun setupPieChart(chart: com.github.mikephil.charting.charts.PieChart, tir: TimeInRange) {
+        val entries = listOf(
+            com.github.mikephil.charting.data.PieEntry(tir.inRange, ""),
+            com.github.mikephil.charting.data.PieEntry(tir.above, ""),
+            com.github.mikephil.charting.data.PieEntry(tir.below, "")
+        )
+        val dataSet = com.github.mikephil.charting.data.PieDataSet(entries, "")
+        dataSet.colors = listOf(
+            androidx.core.content.ContextCompat.getColor(this, R.color.tir_in_range),
+            androidx.core.content.ContextCompat.getColor(this, R.color.tir_above),
+            androidx.core.content.ContextCompat.getColor(this, R.color.tir_below)
+        )
+        dataSet.valueTextSize = 12f
+        val data = com.github.mikephil.charting.data.PieData(dataSet)
+        chart.data = data
+        chart.legend.isEnabled = false
+        chart.description.isEnabled = false
+        chart.invalidate()
     }
 
     private fun updateLastScanText(list: List<InsulinInjection>) {
