@@ -22,6 +22,28 @@ object ApiClient {
 
     private const val TOKEN = "tmp-84524db9b3420d4f"
 
+    /**
+     * Convert the glucose entry time from the ENTRIES_URL API response into an epoch
+     * timestamp. The "sysTime" field may include a timezone offset or rely on the
+     * accompanying "utcOffset" value in minutes.
+     */
+    private fun parseGlucoseTime(obj: JSONObject): Long {
+        val sysTime = obj.optString("sysTime", "")
+        val offsetMin = obj.optInt("utcOffset", 0)
+        if (sysTime.isNotEmpty()) {
+            try {
+                return java.time.OffsetDateTime.parse(sysTime).toInstant().toEpochMilli()
+            } catch (_: Exception) {
+                try {
+                    val ldt = java.time.LocalDateTime.parse(sysTime)
+                    val zone = java.time.ZoneOffset.ofTotalSeconds(offsetMin * 60)
+                    return ldt.toInstant(zone).toEpochMilli()
+                } catch (_: Exception) {}
+            }
+        }
+        return obj.optLong("date")
+    }
+
     fun sendTreatment(context: Context, treatment: Treatment, callback: (Boolean) -> Unit) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -172,7 +194,7 @@ object ApiClient {
                     val id = obj.optString("_id")
                     val direction = obj.optString("direction", null)
                     val device = obj.optString("device", null)
-                    val date = obj.optLong("date")
+                    val date = parseGlucoseTime(obj)
                     val noise = if (obj.has("noise")) obj.optInt("noise") else null
                     if (!sgv.isNaN() && id.isNotEmpty()) {
                         newEntries.add(
@@ -242,7 +264,7 @@ object ApiClient {
                     val id = obj.optString("_id")
                     val direction = obj.optString("direction", null)
                     val device = obj.optString("device", null)
-                    val date = obj.optLong("date")
+                    val date = parseGlucoseTime(obj)
                     val noise = if (obj.has("noise")) obj.optInt("noise") else null
                     if (!sgv.isNaN() && id.isNotEmpty()) {
                         newEntries.add(
