@@ -3,13 +3,13 @@ import android.net.Uri
 import kotlinx.coroutines.*
 import org.json.JSONArray
 import java.io.BufferedReader
-import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
 import com.atelierdjames.nillafood.Treatment
 import com.atelierdjames.nillafood.InsulinInjection
 import com.atelierdjames.nillafood.GlucoseStats
 import com.atelierdjames.nillafood.GlucoseStorage
+import com.atelierdjames.nillafood.TreatmentStorage
 import org.json.JSONObject
 import androidx.core.net.toUri
 import com.atelierdjames.nillafood.TimeInRange
@@ -47,33 +47,39 @@ object ApiClient {
         }
     }
 
-    fun getRecentTreatments(callback: (List<Treatment>?) -> Unit) {
+    fun getRecentTreatments(context: Context, callback: (List<Treatment>?) -> Unit) {
         CoroutineScope(Dispatchers.IO).launch {
+            val lastLocal = TreatmentStorage.getLatestTimestamp(context)
             try {
-                val url = URL("$NIGHTSCOUT_URL?count=10&find[eventType]=Meal%20Entry&token=$TOKEN")
+                val uri = NIGHTSCOUT_URL.toUri().buildUpon()
+                    .appendQueryParameter("find[eventType]", "Meal Entry")
+                    .appendQueryParameter("count", "100")
+                    .appendQueryParameter("token", TOKEN)
+                    .apply { lastLocal?.let { appendQueryParameter("find[created_at][\$gt]", it) } }
+                    .build()
+                val url = URL(uri.toString())
                 val conn = url.openConnection() as HttpURLConnection
                 conn.requestMethod = "GET"
 
                 val result = conn.inputStream.bufferedReader().use(BufferedReader::readText)
                 val jsonArray = JSONArray(result)
 
-                val treatments = mutableListOf<Treatment>()
+                val newTreatments = mutableListOf<Treatment>()
                 for (i in 0 until jsonArray.length()) {
                     val jsonObject = jsonArray.getJSONObject(i)
                     val eventType = jsonObject.optString("eventType")
                     if (eventType == "Meal Entry") {
-                        treatments.add(Treatment.fromJson(jsonObject))
+                        newTreatments.add(Treatment.fromJson(jsonObject))
                     }
                 }
-
-                withContext(Dispatchers.Main) {
-                    callback(treatments)
-                }
+                TreatmentStorage.addOrUpdate(context, newTreatments)
             } catch (e: Exception) {
                 e.printStackTrace()
-                withContext(Dispatchers.Main) {
-                    callback(null)
-                }
+            }
+
+            val all = TreatmentStorage.getAll(context)
+            withContext(Dispatchers.Main) {
+                callback(all)
             }
         }
     }
