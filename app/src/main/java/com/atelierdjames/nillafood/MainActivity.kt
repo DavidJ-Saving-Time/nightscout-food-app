@@ -149,7 +149,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun loadTreatments() {
         Log.d(TAG, "Loading treatments...")
-        ApiClient.getRecentTreatments { result ->
+        ApiClient.getRecentTreatments(this) { result ->
             runOnUiThread {
                 result?.let { treatments ->
                     Log.d(TAG, "Received ${treatments.size} treatments")
