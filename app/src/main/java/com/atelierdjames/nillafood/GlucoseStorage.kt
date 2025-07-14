@@ -7,17 +7,16 @@ object GlucoseStorage {
         return DatabaseProvider.db(context)
     }
 
-    suspend fun getAllEntries(context: Context): List<Pair<String, Float>> {
-        return db(context).glucoseDao().getAll().map { it.timestamp to it.value }
+    suspend fun getAllEntries(context: Context): List<GlucoseEntry> {
+        return db(context).glucoseDao().getAll()
     }
 
-    suspend fun addEntries(context: Context, entries: List<Pair<String, Float>>) {
+    suspend fun addEntries(context: Context, entries: List<GlucoseEntry>) {
         if (entries.isEmpty()) return
-        val list = entries.map { GlucoseEntry(it.first, it.second) }
-        db(context).glucoseDao().insertAll(list)
+        db(context).glucoseDao().insertAll(entries)
     }
 
-    suspend fun getLatestTimestamp(context: Context): String? {
+    suspend fun getLatestTimestamp(context: Context): Long? {
         return db(context).glucoseDao().getLatestTimestamp()
     }
 }
