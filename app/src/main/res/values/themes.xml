@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.NillaFood" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="Theme.NillaFood" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- theme customization -->
     </style>
 </resources>
