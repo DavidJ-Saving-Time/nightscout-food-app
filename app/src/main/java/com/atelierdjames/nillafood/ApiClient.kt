@@ -107,6 +107,7 @@ object ApiClient {
                 for (i in 0 until jsonArray.length()) {
                     val obj = jsonArray.getJSONObject(i)
                     val time = obj.optString("created_at")
+                    val id = obj.optString("_id")
                     val injField = obj.opt("insulinInjections")
                     val injArray = when (injField) {
                         is JSONArray -> injField
@@ -116,14 +117,15 @@ object ApiClient {
                     if (injArray.length() == 0 && obj.has("insulin")) {
                         val units = obj.optDouble("insulin", 0.0).toFloat()
                         val name = obj.optString("insulinType", "")
-                        newInjections.add(InsulinInjection(time, name, units))
+                        newInjections.add(InsulinInjection(id, time, name, units))
                     }
 
                     for (j in 0 until injArray.length()) {
                         val inj = injArray.getJSONObject(j)
                         val name = inj.optString("insulin")
                         val units = inj.optDouble("units", 0.0).toFloat()
-                        newInjections.add(InsulinInjection(time, name, units))
+                        val uniqueId = "$id-$j"
+                        newInjections.add(InsulinInjection(uniqueId, time, name, units))
                     }
                 }
                 InsulinInjectionStorage.addAll(context, newInjections)
