@@ -26,7 +26,7 @@ object OfflineStorage {
                 protein = json.getDouble("protein").toFloat(),
                 fat = json.getDouble("fat").toFloat(),
                 note = json.getString("notes"),
-                timestamp = json.getString("created_at")
+                timestamp = runCatching { java.time.Instant.parse(json.getString("created_at")).toEpochMilli() }.getOrDefault(0L)
             )
             ApiClient.sendTreatment(context, t) { success ->
                 if (!success) remaining.add(entry)

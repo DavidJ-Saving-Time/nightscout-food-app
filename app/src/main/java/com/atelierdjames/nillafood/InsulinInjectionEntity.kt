@@ -6,7 +6,7 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "insulin_injections")
 data class InsulinInjectionEntity(
     @PrimaryKey val id: String,
-    val time: String,
+    val time: Long,
     val insulin: String,
     val units: Float
 ) {

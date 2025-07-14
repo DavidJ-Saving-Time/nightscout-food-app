@@ -16,7 +16,7 @@ object TreatmentStorage {
         }
     }
 
-    suspend fun getLatestTimestamp(context: Context): String? {
+    suspend fun getLatestTimestamp(context: Context): Long? {
         return db(context).treatmentDao().getLatestTimestamp()
     }
 }

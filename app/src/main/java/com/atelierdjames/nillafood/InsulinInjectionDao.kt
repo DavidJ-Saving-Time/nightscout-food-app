@@ -14,5 +14,5 @@ interface InsulinInjectionDao {
     suspend fun insertAll(entries: List<InsulinInjectionEntity>)
 
     @Query("SELECT time FROM insulin_injections ORDER BY time DESC LIMIT 1")
-    suspend fun getLatestTimestamp(): String?
+    suspend fun getLatestTimestamp(): Long?
 }

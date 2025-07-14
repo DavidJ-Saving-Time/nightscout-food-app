@@ -10,7 +10,7 @@ data class TreatmentEntity(
     val protein: Float,
     val fat: Float,
     val note: String,
-    val timestamp: String
+    val timestamp: Long
 ) {
     fun toTreatment(): Treatment = Treatment(carbs, protein, fat, note, timestamp, id)
 
