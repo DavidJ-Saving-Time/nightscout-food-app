@@ -14,5 +14,5 @@ interface TreatmentDao {
     suspend fun insertAll(entries: List<TreatmentEntity>)
 
     @Query("SELECT timestamp FROM treatments ORDER BY timestamp DESC LIMIT 1")
-    suspend fun getLatestTimestamp(): String?
+    suspend fun getLatestTimestamp(): Long?
 }

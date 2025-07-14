@@ -16,7 +16,7 @@ object InsulinInjectionStorage {
         }
     }
 
-    suspend fun getLatestTimestamp(context: Context): String? {
+    suspend fun getLatestTimestamp(context: Context): Long? {
         return db(context).insulinDao().getLatestTimestamp()
     }
 }

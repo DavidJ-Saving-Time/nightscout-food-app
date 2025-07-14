@@ -29,14 +29,14 @@ class InsulinAdapter : RecyclerView.Adapter<InsulinAdapter.ViewHolder>() {
             unitsText.text = item.units.toString()
         }
 
-        private fun formatDate(isoDate: String): String {
+        private fun formatDate(epoch: Long): String {
             return try {
-                val instant = Instant.parse(isoDate)
+                val instant = Instant.ofEpochMilli(epoch)
                 DateTimeFormatter.ofPattern("MMM dd, hh:mm a")
                     .withZone(ZoneId.systemDefault())
                     .format(instant)
             } catch (e: Exception) {
-                isoDate
+                epoch.toString()
             }
         }
     }

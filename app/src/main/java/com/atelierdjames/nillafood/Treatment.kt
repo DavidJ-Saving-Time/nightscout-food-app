@@ -1,7 +1,8 @@
 package com.atelierdjames.nillafood
 
 import org.json.JSONObject
-import java.text.SimpleDateFormat
+import java.time.Instant
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 data class Treatment(
@@ -9,7 +10,7 @@ data class Treatment(
     val protein: Float,
     val fat: Float,
     val note: String,
-    val timestamp: String = getUtcTimestamp(),
+    val timestamp: Long = getUtcTimestamp(),
     val id: String? = null
 ) {
     fun toJson(): JSONObject {
@@ -19,16 +20,18 @@ data class Treatment(
             put("protein", protein)
             put("fat", fat)
             put("notes", note)
-            put("created_at", timestamp)
+            put("created_at", DateTimeFormatter.ISO_INSTANT.format(Instant.ofEpochMilli(timestamp)))
             put("enteredBy", "Nilla")
         }
     }
 
     companion object {
-        fun getUtcTimestamp(): String {
-            val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
-            sdf.timeZone = TimeZone.getTimeZone("UTC")
-            return sdf.format(Date())
+        fun getUtcTimestamp(): Long {
+            return System.currentTimeMillis()
+        }
+
+        private fun parseTimestamp(ts: String): Long {
+            return runCatching { Instant.parse(ts).toEpochMilli() }.getOrDefault(0L)
         }
 
         fun fromJson(json: JSONObject): Treatment {
@@ -37,7 +40,7 @@ data class Treatment(
                 protein = json.optDouble("protein", 0.0).toFloat(),
                 fat = json.optDouble("fat", 0.0).toFloat(),
                 note = json.optString("notes", ""),
-                timestamp = json.optString("created_at", ""),
+                timestamp = parseTimestamp(json.optString("created_at", "")),
                 id = json.optString("_id", null)
             )
         }

@@ -99,7 +99,8 @@ class MainActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            val timestamp = binding.timestampInput.text.toString()
+            val timestampText = binding.timestampInput.text.toString()
+            val timestamp = runCatching { sdf.parse(timestampText)?.time }.getOrNull() ?: System.currentTimeMillis()
             val treatment = Treatment(carbs, protein, fat, note, timestamp)
             ApiClient.sendTreatment(this, treatment) { success ->
                 runOnUiThread {
@@ -224,9 +225,9 @@ class MainActivity : AppCompatActivity() {
 
         fun hoursSince(type: String): Long? {
             val latest = list.filter { it.insulin.equals(type, ignoreCase = true) }
-                .maxByOrNull { runCatching { java.time.Instant.parse(it.time) }.getOrNull() ?: java.time.Instant.EPOCH }
+                .maxByOrNull { it.time }
             return latest?.let { inj ->
-                runCatching { java.time.Duration.between(java.time.Instant.parse(inj.time), now).toHours() }.getOrNull()
+                runCatching { java.time.Duration.between(java.time.Instant.ofEpochMilli(inj.time), now).toHours() }.getOrNull()
             }
         }
 

@@ -78,7 +78,7 @@ object ApiClient {
                     .appendQueryParameter("find[eventType]", "Meal Entry")
                     .appendQueryParameter("count", "100")
                     .appendQueryParameter("token", TOKEN)
-                    .apply { lastLocal?.let { appendQueryParameter("find[created_at][\$gt]", it) } }
+                    .apply { lastLocal?.let { appendQueryParameter("find[created_at][\$gt]", java.time.Instant.ofEpochMilli(it).toString()) } }
                     .build()
                 val url = URL(uri.toString())
                 val conn = url.openConnection() as HttpURLConnection
@@ -115,7 +115,7 @@ object ApiClient {
                     .appendQueryParameter("find[insulin][\$gt]", "0")
                     .appendQueryParameter("count", "100")
                     .appendQueryParameter("token", TOKEN)
-                    .apply { lastLocal?.let { appendQueryParameter("find[created_at][\$gt]", it) } }
+                    .apply { lastLocal?.let { appendQueryParameter("find[created_at][\$gt]", java.time.Instant.ofEpochMilli(it).toString()) } }
                     .build()
                 val url = URL(uri.toString())
 
@@ -128,7 +128,7 @@ object ApiClient {
                 val newInjections = mutableListOf<InsulinInjection>()
                 for (i in 0 until jsonArray.length()) {
                     val obj = jsonArray.getJSONObject(i)
-                    val time = obj.optString("created_at")
+                    val time = runCatching { java.time.Instant.parse(obj.optString("created_at")).toEpochMilli() }.getOrDefault(0L)
                     val id = obj.optString("_id")
                     val injField = obj.opt("insulinInjections")
                     val injArray = when (injField) {
