@@ -13,6 +13,6 @@ interface GlucoseDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(entries: List<GlucoseEntry>)
 
-    @Query("SELECT timestamp FROM glucose_entries ORDER BY timestamp DESC LIMIT 1")
-    suspend fun getLatestTimestamp(): String?
+    @Query("SELECT date FROM glucose_entries ORDER BY date DESC LIMIT 1")
+    suspend fun getLatestTimestamp(): Long?
 }

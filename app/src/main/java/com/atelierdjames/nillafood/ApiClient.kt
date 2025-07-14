@@ -9,6 +9,7 @@ import com.atelierdjames.nillafood.Treatment
 import com.atelierdjames.nillafood.InsulinInjection
 import com.atelierdjames.nillafood.GlucoseStats
 import com.atelierdjames.nillafood.GlucoseStorage
+import com.atelierdjames.nillafood.GlucoseEntry
 import com.atelierdjames.nillafood.TreatmentStorage
 import org.json.JSONObject
 import androidx.core.net.toUri
@@ -147,7 +148,7 @@ object ApiClient {
             // Determine the range to fetch from the API. If we have data locally
             // start from the latest entry, otherwise pull the last two weeks.
             val lastLocalTs = GlucoseStorage.getLatestTimestamp(context)
-            val startInstant = lastLocalTs?.let { java.time.Instant.parse(it).plusSeconds(1) }
+            val startInstant = lastLocalTs?.let { java.time.Instant.ofEpochMilli(it).plusMillis(1) }
                 ?: now.minus(14, java.time.temporal.ChronoUnit.DAYS)
 
             // Fetch any new entries from the API and append them to local storage
@@ -163,14 +164,27 @@ object ApiClient {
                 conn.requestMethod = "GET"
 
                 val result = conn.inputStream.bufferedReader().use(BufferedReader::readText)
-                val newEntries = mutableListOf<Pair<String, Float>>()
+                val newEntries = mutableListOf<GlucoseEntry>()
                 val jsonArray = JSONArray(result)
                 for (i in 0 until jsonArray.length()) {
                     val obj = jsonArray.getJSONObject(i)
                     val sgv = obj.optDouble("sgv", Double.NaN)
-                    val ts = obj.optString("dateString")
-                    if (!sgv.isNaN() && ts.isNotEmpty()) {
-                        newEntries.add(ts to sgv.toFloat())
+                    val id = obj.optString("_id")
+                    val direction = obj.optString("direction", null)
+                    val device = obj.optString("device", null)
+                    val date = obj.optLong("date")
+                    val noise = if (obj.has("noise")) obj.optInt("noise") else null
+                    if (!sgv.isNaN() && id.isNotEmpty()) {
+                        newEntries.add(
+                            GlucoseEntry(
+                                id = id,
+                                sgv = sgv.toFloat(),
+                                direction = direction,
+                                device = device,
+                                date = date,
+                                noise = noise
+                            )
+                        )
                     }
                 }
                 GlucoseStorage.addEntries(context, newEntries)
@@ -184,10 +198,10 @@ object ApiClient {
             val dayAgo = now.minus(1, java.time.temporal.ChronoUnit.DAYS)
             var sum = 0f
             var count = 0
-            for ((ts, value) in entries) {
-                val inst = runCatching { java.time.Instant.parse(ts) }.getOrNull() ?: continue
+            for (e in entries) {
+                val inst = runCatching { java.time.Instant.ofEpochMilli(e.date) }.getOrNull() ?: continue
                 if (!inst.isBefore(dayAgo) && !inst.isAfter(now)) {
-                    sum += value
+                    sum += e.sgv
                     count++
                 }
             }
@@ -205,7 +219,7 @@ object ApiClient {
                 .withZone(java.time.ZoneOffset.UTC)
 
             val lastLocalTs = GlucoseStorage.getLatestTimestamp(context)
-            val startInstant = lastLocalTs?.let { java.time.Instant.parse(it).plusSeconds(1) }
+            val startInstant = lastLocalTs?.let { java.time.Instant.ofEpochMilli(it).plusMillis(1) }
                 ?: now.minus(14, java.time.temporal.ChronoUnit.DAYS)
 
             try {
@@ -220,14 +234,27 @@ object ApiClient {
                 conn.requestMethod = "GET"
 
                 val result = conn.inputStream.bufferedReader().use(BufferedReader::readText)
-                val newEntries = mutableListOf<Pair<String, Float>>()
+                val newEntries = mutableListOf<GlucoseEntry>()
                 val jsonArray = JSONArray(result)
                 for (i in 0 until jsonArray.length()) {
                     val obj = jsonArray.getJSONObject(i)
                     val sgv = obj.optDouble("sgv", Double.NaN)
-                    val ts = obj.optString("dateString")
-                    if (!sgv.isNaN() && ts.isNotEmpty()) {
-                        newEntries.add(ts to sgv.toFloat())
+                    val id = obj.optString("_id")
+                    val direction = obj.optString("direction", null)
+                    val device = obj.optString("device", null)
+                    val date = obj.optLong("date")
+                    val noise = if (obj.has("noise")) obj.optInt("noise") else null
+                    if (!sgv.isNaN() && id.isNotEmpty()) {
+                        newEntries.add(
+                            GlucoseEntry(
+                                id = id,
+                                sgv = sgv.toFloat(),
+                                direction = direction,
+                                device = device,
+                                date = date,
+                                noise = noise
+                            )
+                        )
                     }
                 }
                 GlucoseStorage.addEntries(context, newEntries)
@@ -241,10 +268,10 @@ object ApiClient {
                 val start = now.minus(days, java.time.temporal.ChronoUnit.DAYS)
                 var sum = 0f
                 var count = 0
-                for ((ts, value) in entries) {
-                    val inst = runCatching { java.time.Instant.parse(ts) }.getOrNull() ?: continue
+                for (e in entries) {
+                    val inst = runCatching { java.time.Instant.ofEpochMilli(e.date) }.getOrNull() ?: continue
                     if (!inst.isBefore(start) && !inst.isAfter(now)) {
-                        sum += value
+                        sum += e.sgv
                         count++
                     }
                 }
@@ -258,12 +285,12 @@ object ApiClient {
                 var inRange = 0
                 var above = 0
                 var below = 0
-                for ((ts, value) in entries) {
-                    val inst = runCatching { java.time.Instant.parse(ts) }.getOrNull() ?: continue
+                for (e in entries) {
+                    val inst = runCatching { java.time.Instant.ofEpochMilli(e.date) }.getOrNull() ?: continue
                     if (inst.isBefore(start) || inst.isAfter(now)) continue
                     when {
-                        value < low -> below++
-                        value > high -> above++
+                        e.sgv < low -> below++
+                        e.sgv > high -> above++
                         else -> inRange++
                     }
                 }
@@ -279,15 +306,15 @@ object ApiClient {
             // Overall metrics using all stored values
             var overallSum = 0f
             var overallCount = 0
-            for ((_, v) in entries) {
-                overallSum += v
+            for (e in entries) {
+                overallSum += e.sgv
                 overallCount++
             }
             val overallAvgMgdl = if (overallCount > 0) overallSum / overallCount else Float.NaN
             var variance = 0f
             if (overallCount > 0) {
-                for ((_, v) in entries) {
-                    variance += (v - overallAvgMgdl) * (v - overallAvgMgdl)
+                for (e in entries) {
+                    variance += (e.sgv - overallAvgMgdl) * (e.sgv - overallAvgMgdl)
                 }
                 variance /= overallCount
             } else {
