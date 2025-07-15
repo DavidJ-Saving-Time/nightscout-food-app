@@ -146,10 +146,8 @@ class MainActivity : AppCompatActivity() {
         }
         binding.refreshMealsButton.setOnClickListener { loadTreatments() }
         binding.masterRefreshButton.setOnClickListener {
-            binding.masterRefreshButton.isEnabled = false
             ApiClient.masterRefresh(this) {
                 runOnUiThread {
-                    binding.masterRefreshButton.isEnabled = true
                     loadTreatments()
                     loadInsulinTreatments()
                     loadInsulinUsage()
