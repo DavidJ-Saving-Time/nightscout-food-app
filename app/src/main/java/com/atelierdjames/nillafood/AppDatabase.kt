@@ -12,5 +12,4 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun treatmentDao(): TreatmentDao
     abstract fun insulinDao(): InsulinInjectionDao
     abstract fun analyticsDao(): AnalyticsDao
-    abstract fun mealDao(): MealDao
 }
