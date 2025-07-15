@@ -16,6 +16,19 @@ object TreatmentStorage {
         }
     }
 
+    suspend fun replaceAll(context: Context, treatments: List<Treatment>) {
+        val dao = db(context).treatmentDao()
+        dao.deleteAll()
+        val entities = treatments.mapNotNull { TreatmentEntity.from(it) }
+        if (entities.isNotEmpty()) {
+            dao.insertAll(entities)
+        }
+    }
+
+    suspend fun delete(context: Context, id: String) {
+        db(context).treatmentDao().deleteById(id)
+    }
+
     suspend fun getLatestTimestamp(context: Context): Long? {
         return db(context).treatmentDao().getLatestTimestamp()
     }
