@@ -239,8 +239,8 @@ class MainActivity : AppCompatActivity() {
                             binding.treatmentsRecyclerView.scrollToPosition(0)
                         }
                         val newFirst = updated.firstOrNull()?.timestamp
-                        val shouldHighlight = wasAtTop && newFirst != null && lastTreatmentTimestamp != null && newFirst > lastTreatmentTimestamp!!
-                        if (shouldHighlight) {
+                        val hasNewItem = newFirst != null && (lastTreatmentTimestamp == null || newFirst > lastTreatmentTimestamp!!)
+                        if (hasNewItem) {
                             adapter.highlightPosition(0)
                             binding.treatmentsRecyclerView.postDelayed({
                                 adapter.clearHighlight()
