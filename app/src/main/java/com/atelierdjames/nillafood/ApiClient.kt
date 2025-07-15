@@ -11,6 +11,7 @@ import com.atelierdjames.nillafood.GlucoseStats
 import com.atelierdjames.nillafood.GlucoseStorage
 import com.atelierdjames.nillafood.GlucoseEntry
 import com.atelierdjames.nillafood.TreatmentStorage
+import com.atelierdjames.nillafood.InsulinInjectionStorage
 import org.json.JSONObject
 import androidx.core.net.toUri
 import com.atelierdjames.nillafood.TimeInRange
@@ -371,5 +372,115 @@ object ApiClient {
                 }
             }
         }
+    }
+
+    fun masterRefresh(context: Context, callback: () -> Unit) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val now = java.time.Instant.now()
+            val start = now.minus(60, java.time.temporal.ChronoUnit.DAYS)
+
+            val treatments = fetchAllTreatments(start, now)
+            val injections = fetchAllInjections(start, now)
+            val glucose = fetchAllGlucose(start, now)
+
+            TreatmentStorage.replaceAll(context, treatments)
+            InsulinInjectionStorage.replaceAll(context, injections)
+            GlucoseStorage.replaceAll(context, glucose)
+
+            withContext(Dispatchers.Main) { callback() }
+        }
+    }
+
+    private suspend fun fetchAllTreatments(start: java.time.Instant, end: java.time.Instant): List<Treatment> {
+        val uri = NIGHTSCOUT_URL.toUri().buildUpon()
+            .appendQueryParameter("find[eventType]", "Meal Entry")
+            .appendQueryParameter("count", "10000")
+            .appendQueryParameter("token", TOKEN)
+            .appendQueryParameter("find[created_at][\$gte]", start.toString())
+            .appendQueryParameter("find[created_at][\$lte]", end.toString())
+            .build()
+        val url = URL(uri.toString())
+        val conn = url.openConnection() as HttpURLConnection
+        conn.requestMethod = "GET"
+        val text = conn.inputStream.bufferedReader().use(BufferedReader::readText)
+        val arr = JSONArray(text)
+        val result = mutableListOf<Treatment>()
+        for (i in 0 until arr.length()) {
+            val obj = arr.getJSONObject(i)
+            if (obj.optString("eventType") == "Meal Entry") {
+                result.add(Treatment.fromJson(obj))
+            }
+        }
+        return result
+    }
+
+    private suspend fun fetchAllInjections(start: java.time.Instant, end: java.time.Instant): List<InsulinInjection> {
+        val uri = NIGHTSCOUT_URL.toUri().buildUpon()
+            .appendQueryParameter("find[insulin][\$gt]", "0")
+            .appendQueryParameter("count", "10000")
+            .appendQueryParameter("token", TOKEN)
+            .appendQueryParameter("find[created_at][\$gte]", start.toString())
+            .appendQueryParameter("find[created_at][\$lte]", end.toString())
+            .build()
+        val url = URL(uri.toString())
+        val conn = url.openConnection() as HttpURLConnection
+        conn.requestMethod = "GET"
+        val text = conn.inputStream.bufferedReader().use(BufferedReader::readText)
+        val arr = JSONArray(text)
+        val result = mutableListOf<InsulinInjection>()
+        for (i in 0 until arr.length()) {
+            val obj = arr.getJSONObject(i)
+            val time = runCatching { java.time.Instant.parse(obj.optString("created_at")).toEpochMilli() }.getOrDefault(0L)
+            val id = obj.optString("_id")
+            val injField = obj.opt("insulinInjections")
+            val injArray = when (injField) {
+                is JSONArray -> injField
+                is String -> try { JSONArray(injField) } catch (_: Exception) { JSONArray() }
+                else -> JSONArray()
+            }
+            if (injArray.length() == 0 && obj.has("insulin")) {
+                val units = obj.optDouble("insulin", 0.0).toFloat()
+                val name = obj.optString("insulinType", "")
+                result.add(InsulinInjection(id, time, name, units))
+            }
+            for (j in 0 until injArray.length()) {
+                val inj = injArray.getJSONObject(j)
+                val name = inj.optString("insulin")
+                val units = inj.optDouble("units", 0.0).toFloat()
+                val uniqueId = "$id-$j"
+                result.add(InsulinInjection(uniqueId, time, name, units))
+            }
+        }
+        return result
+    }
+
+    private suspend fun fetchAllGlucose(start: java.time.Instant, end: java.time.Instant): List<GlucoseEntry> {
+        val formatter = java.time.format.DateTimeFormatter
+            .ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+            .withZone(java.time.ZoneOffset.UTC)
+        val uri = ENTRIES_URL.toUri().buildUpon()
+            .appendQueryParameter("find[dateString][\$gte]", formatter.format(start))
+            .appendQueryParameter("find[dateString][\$lte]", formatter.format(end))
+            .appendQueryParameter("count", "10000")
+            .build()
+        val url = URL(uri.toString())
+        val conn = url.openConnection() as HttpURLConnection
+        conn.requestMethod = "GET"
+        val text = conn.inputStream.bufferedReader().use(BufferedReader::readText)
+        val arr = JSONArray(text)
+        val result = mutableListOf<GlucoseEntry>()
+        for (i in 0 until arr.length()) {
+            val obj = arr.getJSONObject(i)
+            val sgv = obj.optDouble("sgv", Double.NaN)
+            val id = obj.optString("_id")
+            val direction = obj.optString("direction", null)
+            val device = obj.optString("device", null)
+            val date = parseGlucoseTime(obj)
+            val noise = if (obj.has("noise")) obj.optInt("noise") else null
+            if (!sgv.isNaN() && id.isNotEmpty()) {
+                result.add(GlucoseEntry(id, sgv.toFloat(), direction, device, date, noise))
+            }
+        }
+        return result
     }
 }

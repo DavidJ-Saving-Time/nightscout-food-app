@@ -23,4 +23,5 @@
     <string name="hba1c_days_format">Using last %1$d days of data</string>
     <string name="sd_format">SD: %.1f mmol/L</string>
     <string name="refresh">Refresh</string>
+    <string name="master_refresh">Master Refresh</string>
 </resources>
