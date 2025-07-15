@@ -224,6 +224,9 @@ class MainActivity : AppCompatActivity() {
                 result?.let { treatments ->
                     Log.d(TAG, "Received ${treatments.size} treatments")
                     adapter.submitList(treatments)
+                    if (treatments.isNotEmpty()) {
+                        binding.treatmentsRecyclerView.scrollToPosition(0)
+                    }
                     onComplete?.invoke(treatments)
                 } ?: run {
                     Log.e(TAG, "Failed to load treatments")
