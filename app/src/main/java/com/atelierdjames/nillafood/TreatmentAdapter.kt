@@ -4,6 +4,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.DiffUtil
 import java.time.Instant
@@ -16,6 +17,7 @@ class TreatmentAdapter(
 ) : RecyclerView.Adapter<TreatmentAdapter.ViewHolder>() {
 
     private val items = mutableListOf<Treatment>()
+    private var highlightedPosition: Int? = null
 
     // Improved list submission with diffing
     fun submitList(newList: List<Treatment>) {
@@ -46,7 +48,7 @@ class TreatmentAdapter(
         private val createdAtText: TextView = itemView.findViewById(R.id.createdAtText)
         private val deleteButton: View = itemView.findViewById(R.id.deleteButton)
 
-        fun bind(treatment: Treatment) {
+        fun bind(treatment: Treatment, highlighted: Boolean) {
             carbsText.text = itemView.context.getString(R.string.carbs_format, treatment.carbs)
             proteinText.text = itemView.context.getString(R.string.protein_format, treatment.protein)
             fatText.text = itemView.context.getString(R.string.fat_format, treatment.fat)
@@ -55,6 +57,9 @@ class TreatmentAdapter(
 
             itemView.setOnClickListener { onItemClick(treatment) }
             deleteButton.setOnClickListener { onDelete(treatment) }
+
+            val colorRes = if (highlighted) R.color.highlight else android.R.color.transparent
+            itemView.setBackgroundColor(ContextCompat.getColor(itemView.context, colorRes))
         }
 
         private fun formatDate(epoch: Long): String {
@@ -76,10 +81,26 @@ class TreatmentAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bind(items[position])
+        val highlighted = position == highlightedPosition
+        holder.bind(items[position], highlighted)
     }
 
     override fun getItemCount() = items.size
+
+    fun highlightPosition(pos: Int) {
+        val previous = highlightedPosition
+        highlightedPosition = pos
+        previous?.let { notifyItemChanged(it) }
+        notifyItemChanged(pos)
+    }
+
+    fun clearHighlight() {
+        highlightedPosition?.let {
+            val prev = it
+            highlightedPosition = null
+            notifyItemChanged(prev)
+        }
+    }
 }
 
 
