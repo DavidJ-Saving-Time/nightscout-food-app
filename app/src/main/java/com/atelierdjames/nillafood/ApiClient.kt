@@ -393,52 +393,47 @@ object ApiClient {
 
     private suspend fun fetchAllTreatments(start: java.time.Instant): List<Treatment> {
         val result = mutableListOf<Treatment>()
+        var skip = 0
         val count = 1000
-        var last: java.time.Instant? = null
         while (true) {
-            val builder = NIGHTSCOUT_URL.toUri().buildUpon()
+            val uri = NIGHTSCOUT_URL.toUri().buildUpon()
                 .appendQueryParameter("find[eventType]", "Meal Entry")
-                .appendQueryParameter("find[created_at][\$gte]", start.toString())
-                .appendQueryParameter("sort[created_at]", "-1")
                 .appendQueryParameter("count", count.toString())
+                .appendQueryParameter("skip", skip.toString())
                 .appendQueryParameter("token", TOKEN)
-            if (last != null) {
-                builder.appendQueryParameter("find[created_at][\$lt]", last.toString())
-            }
-            val uri = builder.build()
+                .build()
             val url = URL(uri.toString())
             val conn = url.openConnection() as HttpURLConnection
             conn.requestMethod = "GET"
             val text = conn.inputStream.bufferedReader().use(BufferedReader::readText)
             val arr = JSONArray(text)
+            var added = 0
             for (i in 0 until arr.length()) {
                 val obj = arr.getJSONObject(i)
+                val ts = runCatching { java.time.Instant.parse(obj.optString("created_at")) }.getOrNull()
+                if (ts != null && ts.isBefore(start)) return result
                 if (obj.optString("eventType") == "Meal Entry") {
                     result.add(Treatment.fromJson(obj))
+                    added++
                 }
             }
-            if (arr.length() < count) break
-            val lastObj = arr.getJSONObject(arr.length() - 1)
-            last = java.time.Instant.parse(lastObj.optString("created_at"))
+            if (added < count) break
+            skip += count
         }
         return result
     }
 
     private suspend fun fetchAllInjections(start: java.time.Instant): List<InsulinInjection> {
         val result = mutableListOf<InsulinInjection>()
+        var skip = 0
         val count = 1000
-        var last: java.time.Instant? = null
         while (true) {
-            val builder = NIGHTSCOUT_URL.toUri().buildUpon()
+            val uri = NIGHTSCOUT_URL.toUri().buildUpon()
                 .appendQueryParameter("find[insulin][\$gt]", "0")
-                .appendQueryParameter("find[created_at][\$gte]", start.toString())
-                .appendQueryParameter("sort[created_at]", "-1")
                 .appendQueryParameter("count", count.toString())
+                .appendQueryParameter("skip", skip.toString())
                 .appendQueryParameter("token", TOKEN)
-            if (last != null) {
-                builder.appendQueryParameter("find[created_at][\$lt]", last.toString())
-            }
-            val uri = builder.build()
+                .build()
             val url = URL(uri.toString())
             val conn = url.openConnection() as HttpURLConnection
             conn.requestMethod = "GET"
@@ -448,6 +443,7 @@ object ApiClient {
             for (i in 0 until arr.length()) {
                 val obj = arr.getJSONObject(i)
                 val time = runCatching { java.time.Instant.parse(obj.optString("created_at")) }.getOrNull()
+                if (time != null && time.isBefore(start)) return result
                 val id = obj.optString("_id")
                 val injField = obj.opt("insulinInjections")
                 val injArray = when (injField) {
@@ -469,8 +465,7 @@ object ApiClient {
                 }
             }
             if (arr.length() < count) break
-            val lastObj = arr.getJSONObject(arr.length() - 1)
-            last = java.time.Instant.parse(lastObj.optString("created_at"))
+            skip += count
         }
         return result
     }
@@ -480,18 +475,15 @@ object ApiClient {
             .ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
             .withZone(java.time.ZoneOffset.UTC)
         val result = mutableListOf<GlucoseEntry>()
+        var skip = 0
         val count = 1000
-        var last: java.time.Instant? = null
         while (true) {
-            val builder = ENTRIES_URL.toUri().buildUpon()
+            val uri = ENTRIES_URL.toUri().buildUpon()
                 .appendQueryParameter("find[dateString][\$gte]", formatter.format(start))
                 .appendQueryParameter("find[dateString][\$lte]", formatter.format(end))
-                .appendQueryParameter("sort[dateString]", "-1")
                 .appendQueryParameter("count", count.toString())
-            if (last != null) {
-                builder.appendQueryParameter("find[dateString][\$lt]", formatter.format(last))
-            }
-            val uri = builder.build()
+                .appendQueryParameter("skip", skip.toString())
+                .build()
             val url = URL(uri.toString())
             val conn = url.openConnection() as HttpURLConnection
             conn.requestMethod = "GET"
@@ -511,9 +503,7 @@ object ApiClient {
                 }
             }
             if (arr.length() < count) break
-            val lastObj = arr.getJSONObject(arr.length() - 1)
-            val time = parseGlucoseTime(lastObj)
-            last = java.time.Instant.ofEpochMilli(time)
+            skip += count
         }
         return result
     }
