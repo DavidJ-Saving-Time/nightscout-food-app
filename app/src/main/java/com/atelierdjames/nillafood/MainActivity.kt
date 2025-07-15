@@ -40,6 +40,7 @@ class MainActivity : AppCompatActivity() {
     private val displaySdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US).apply {
         timeZone = TimeZone.getDefault()
     }
+    private var lastTreatmentTimestamp: Long? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -219,6 +220,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun loadTreatments(onComplete: ((List<Treatment>) -> Unit)? = null) {
         Log.d(TAG, "Loading treatments...")
+        val wasAtTop = !binding.treatmentsRecyclerView.canScrollVertically(-1)
         ApiClient.getRecentTreatments(this) { result ->
             runOnUiThread {
                 result?.let { treatments ->
@@ -227,6 +229,15 @@ class MainActivity : AppCompatActivity() {
                     if (treatments.isNotEmpty()) {
                         binding.treatmentsRecyclerView.scrollToPosition(0)
                     }
+                    val newFirst = treatments.firstOrNull()?.timestamp
+                    val shouldHighlight = wasAtTop && newFirst != null && lastTreatmentTimestamp != null && newFirst > lastTreatmentTimestamp!!
+                    if (shouldHighlight) {
+                        adapter.highlightPosition(0)
+                        binding.treatmentsRecyclerView.postDelayed({
+                            adapter.clearHighlight()
+                        }, 3000)
+                    }
+                    lastTreatmentTimestamp = newFirst
                     onComplete?.invoke(treatments)
                 } ?: run {
                     Log.e(TAG, "Failed to load treatments")
