@@ -90,15 +90,19 @@ class TreatmentAdapter(
     fun highlightPosition(pos: Int) {
         val previous = highlightedPosition
         highlightedPosition = pos
-        previous?.let { notifyItemChanged(it) }
-        notifyItemChanged(pos)
+        previous?.let { if (it < itemCount) notifyItemChanged(it) }
+        if (pos < itemCount) {
+            notifyItemChanged(pos)
+        }
     }
 
     fun clearHighlight() {
         highlightedPosition?.let {
             val prev = it
             highlightedPosition = null
-            notifyItemChanged(prev)
+            if (prev < itemCount) {
+                notifyItemChanged(prev)
+            }
         }
     }
 }
