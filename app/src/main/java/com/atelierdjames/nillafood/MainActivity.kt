@@ -69,6 +69,7 @@ class MainActivity : AppCompatActivity() {
         setupInsulinRecyclerView()
         loadInsulinTreatments()
         loadTreatments()
+        loadStats()
         OfflineStorage.retryUnsyncedData(this)
 
         binding.tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
@@ -78,11 +79,13 @@ class MainActivity : AppCompatActivity() {
                         binding.mealsLayout.visibility = View.VISIBLE
                         binding.insulinLayout.visibility = View.GONE
                         binding.nightscoutLayout.visibility = View.GONE
+                        loadTreatments()
                     }
                     1 -> {
                         binding.mealsLayout.visibility = View.GONE
                         binding.insulinLayout.visibility = View.VISIBLE
                         binding.nightscoutLayout.visibility = View.GONE
+                        loadInsulinTreatments()
                     }
                     else -> {
                         binding.mealsLayout.visibility = View.GONE
