@@ -221,32 +221,34 @@ class MainActivity : AppCompatActivity() {
     private fun loadTreatments(onComplete: ((List<Treatment>) -> Unit)? = null) {
         Log.d(TAG, "Loading treatments...")
         val wasAtTop = !binding.treatmentsRecyclerView.canScrollVertically(-1)
-        ApiClient.getRecentTreatments(this) { result ->
-            runOnUiThread {
-                result?.let { treatments ->
-                    Log.d(TAG, "Received ${treatments.size} treatments")
-                    adapter.submitList(treatments)
-                    if (treatments.isNotEmpty()) {
-                        binding.treatmentsRecyclerView.scrollToPosition(0)
+        CoroutineScope(Dispatchers.IO).launch {
+            val local = TreatmentStorage.getAll(this@MainActivity)
+            withContext(Dispatchers.Main) {
+                adapter.submitList(local)
+                if (local.isNotEmpty()) {
+                    binding.treatmentsRecyclerView.scrollToPosition(0)
+                }
+            }
+
+            ApiClient.syncRecentTreatments(this@MainActivity) {
+                CoroutineScope(Dispatchers.IO).launch {
+                    val updated = TreatmentStorage.getAll(this@MainActivity)
+                    withContext(Dispatchers.Main) {
+                        adapter.submitList(updated)
+                        if (updated.isNotEmpty()) {
+                            binding.treatmentsRecyclerView.scrollToPosition(0)
+                        }
+                        val newFirst = updated.firstOrNull()?.timestamp
+                        val shouldHighlight = wasAtTop && newFirst != null && lastTreatmentTimestamp != null && newFirst > lastTreatmentTimestamp!!
+                        if (shouldHighlight) {
+                            adapter.highlightPosition(0)
+                            binding.treatmentsRecyclerView.postDelayed({
+                                adapter.clearHighlight()
+                            }, 3000)
+                        }
+                        lastTreatmentTimestamp = newFirst
+                        onComplete?.invoke(updated)
                     }
-                    val newFirst = treatments.firstOrNull()?.timestamp
-                    val shouldHighlight = wasAtTop && newFirst != null && lastTreatmentTimestamp != null && newFirst > lastTreatmentTimestamp!!
-                    if (shouldHighlight) {
-                        adapter.highlightPosition(0)
-                        binding.treatmentsRecyclerView.postDelayed({
-                            adapter.clearHighlight()
-                        }, 3000)
-                    }
-                    lastTreatmentTimestamp = newFirst
-                    onComplete?.invoke(treatments)
-                } ?: run {
-                    Log.e(TAG, "Failed to load treatments")
-                    Toast.makeText(
-                        this@MainActivity,
-                        "Failed to load treatments",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    onComplete?.invoke(emptyList())
                 }
             }
         }

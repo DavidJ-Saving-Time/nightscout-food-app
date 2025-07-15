@@ -124,38 +124,55 @@ object ApiClient {
 
     fun getRecentTreatments(context: Context, callback: (List<Treatment>?) -> Unit) {
         CoroutineScope(Dispatchers.IO).launch {
-            val lastLocal = TreatmentStorage.getLatestTimestamp(context)
-            try {
-                val uri = NIGHTSCOUT_URL.toUri().buildUpon()
-                    .appendQueryParameter("find[eventType]", "Meal Entry")
-                    .appendQueryParameter("count", "100")
-                    .appendQueryParameter("token", TOKEN)
-                    .apply { lastLocal?.let { appendQueryParameter("find[created_at][\$gt]", java.time.Instant.ofEpochMilli(it).toString()) } }
-                    .build()
-                val url = URL(uri.toString())
-                val conn = url.openConnection() as HttpURLConnection
-                conn.requestMethod = "GET"
-
-                val result = conn.inputStream.bufferedReader().use(BufferedReader::readText)
-                val jsonArray = JSONArray(result)
-
-                val newTreatments = mutableListOf<Treatment>()
-                for (i in 0 until jsonArray.length()) {
-                    val jsonObject = jsonArray.getJSONObject(i)
-                    val eventType = jsonObject.optString("eventType")
-                    if (eventType == "Meal Entry") {
-                        newTreatments.add(Treatment.fromJson(jsonObject))
-                    }
-                }
-                TreatmentStorage.addOrUpdate(context, newTreatments)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-
+            syncRecentTreatmentsInternal(context)
             val all = TreatmentStorage.getAll(context)
             withContext(Dispatchers.Main) {
                 callback(all)
             }
+        }
+    }
+
+    fun syncRecentTreatments(context: Context, callback: () -> Unit) {
+        CoroutineScope(Dispatchers.IO).launch {
+            syncRecentTreatmentsInternal(context)
+            withContext(Dispatchers.Main) { callback() }
+        }
+    }
+
+    private suspend fun syncRecentTreatmentsInternal(context: Context) {
+        val lastLocal = TreatmentStorage.getLatestTimestamp(context)
+        try {
+            val uri = NIGHTSCOUT_URL.toUri().buildUpon()
+                .appendQueryParameter("find[eventType]", "Meal Entry")
+                .appendQueryParameter("count", "100")
+                .appendQueryParameter("token", TOKEN)
+                .apply {
+                    lastLocal?.let {
+                        appendQueryParameter(
+                            "find[created_at][\$gt]",
+                            java.time.Instant.ofEpochMilli(it).toString()
+                        )
+                    }
+                }
+                .build()
+            val url = URL(uri.toString())
+            val conn = url.openConnection() as HttpURLConnection
+            conn.requestMethod = "GET"
+
+            val result = conn.inputStream.bufferedReader().use(BufferedReader::readText)
+            val jsonArray = JSONArray(result)
+
+            val newTreatments = mutableListOf<Treatment>()
+            for (i in 0 until jsonArray.length()) {
+                val jsonObject = jsonArray.getJSONObject(i)
+                val eventType = jsonObject.optString("eventType")
+                if (eventType == "Meal Entry") {
+                    newTreatments.add(Treatment.fromJson(jsonObject))
+                }
+            }
+            TreatmentStorage.addOrUpdate(context, newTreatments)
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
