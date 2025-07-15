@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import android.view.View
+import androidx.appcompat.app.AlertDialog
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.appcompat.app.AppCompatActivity
@@ -144,7 +145,23 @@ class MainActivity : AppCompatActivity() {
                         Toast.makeText(this, "Saved locally. Will retry when online.", Toast.LENGTH_SHORT).show()
                     }
 
-                    loadTreatments()
+                    loadTreatments { _ ->
+                        CoroutineScope(Dispatchers.IO).launch {
+                            val logged = TreatmentStorage.getSince(this@MainActivity, timestamp - 1000)
+                                .any {
+                                    it.timestamp == treatment.timestamp &&
+                                    it.carbs == treatment.carbs &&
+                                    it.protein == treatment.protein &&
+                                    it.fat == treatment.fat &&
+                                    it.note == treatment.note
+                                }
+                            withContext(Dispatchers.Main) {
+                                if (logged) {
+                                    showLoggedMealDialog(treatment)
+                                }
+                            }
+                        }
+                    }
                     resetForm()
                 }
             }
@@ -200,13 +217,14 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun loadTreatments() {
+    private fun loadTreatments(onComplete: ((List<Treatment>) -> Unit)? = null) {
         Log.d(TAG, "Loading treatments...")
         ApiClient.getRecentTreatments(this) { result ->
             runOnUiThread {
                 result?.let { treatments ->
                     Log.d(TAG, "Received ${treatments.size} treatments")
                     adapter.submitList(treatments)
+                    onComplete?.invoke(treatments)
                 } ?: run {
                     Log.e(TAG, "Failed to load treatments")
                     Toast.makeText(
@@ -214,6 +232,7 @@ class MainActivity : AppCompatActivity() {
                         "Failed to load treatments",
                         Toast.LENGTH_SHORT
                     ).show()
+                    onComplete?.invoke(emptyList())
                 }
             }
         }
@@ -316,6 +335,21 @@ class MainActivity : AppCompatActivity() {
 
         calendar.time = Date()
         binding.timestampInput.setText(displaySdf.format(calendar.time))
+    }
+
+    private fun showLoggedMealDialog(treatment: Treatment) {
+        val message = getString(
+            R.string.meal_logged_message,
+            treatment.carbs,
+            treatment.protein,
+            treatment.fat,
+            treatment.note
+        )
+        AlertDialog.Builder(this)
+            .setTitle(getString(R.string.meal_logged_title))
+            .setMessage(message)
+            .setPositiveButton(android.R.string.ok, null)
+            .show()
     }
     private fun showTreatmentDetails(treatment: Treatment) {
         Toast.makeText(this, "Selected: ${treatment.note}", Toast.LENGTH_SHORT).show()
