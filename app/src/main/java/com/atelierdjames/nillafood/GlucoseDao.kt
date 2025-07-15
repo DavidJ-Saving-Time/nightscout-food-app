@@ -15,4 +15,7 @@ interface GlucoseDao {
 
     @Query("SELECT date FROM glucose_entries ORDER BY date DESC LIMIT 1")
     suspend fun getLatestTimestamp(): Long?
+
+    @Query("SELECT date FROM glucose_entries ORDER BY date ASC LIMIT 1")
+    suspend fun getEarliestTimestamp(): Long?
 }

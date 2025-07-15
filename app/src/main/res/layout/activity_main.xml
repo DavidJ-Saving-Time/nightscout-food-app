@@ -276,6 +276,15 @@
             android:padding="8dp" />
 
         <TextView
+            android:id="@+id/hba1cDaysText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textAlignment="center"
+            android:textSize="14sp"
+            android:padding="4dp" />
+
+        <TextView
             android:id="@+id/sdText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
