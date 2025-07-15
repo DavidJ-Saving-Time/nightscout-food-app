@@ -6,7 +6,7 @@
     <string name="delete">X</string>
     <string name="timestamp_hint">Date &amp; Time</string>
     <string name="tab_meals">Meals</string>
-    <string name="tab_injections">Injections</string>
+    <string name="tab_injections">Inject</string>
     <string name="tab_insulin">Insulin</string>
     <string name="tab_nightscout">Stats</string>
     <string name="last_scan_format">Last %1$s Pen Scan %2$d hours ago</string>
@@ -25,8 +25,8 @@
     <string name="refresh">Refresh</string>
     <string name="master_refresh">Master Refresh</string>
     <string name="insulin_usage_heading_date">Date</string>
-    <string name="insulin_usage_heading_novorapid">Novorapid</string>
-    <string name="insulin_usage_heading_tresiba">Tresiba</string>
+    <string name="insulin_usage_heading_novorapid">Bolus</string>
+    <string name="insulin_usage_heading_tresiba">Basil</string>
     <string name="insulin_usage_heading_carbs">Carbs</string>
     <string name="insulin_usage_heading_protein">Protein</string>
     <string name="insulin_usage_heading_fat">Fat</string>

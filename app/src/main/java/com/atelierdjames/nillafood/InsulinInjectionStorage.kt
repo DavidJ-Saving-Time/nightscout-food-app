@@ -74,6 +74,6 @@ object InsulinInjectionStorage {
                 )
             )
         }
-        return result
+        return result.reversed()
     }
 }

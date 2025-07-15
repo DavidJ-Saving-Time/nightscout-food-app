@@ -7,11 +7,12 @@ import java.net.HttpURLConnection
 import java.net.URL
 import com.atelierdjames.nillafood.Treatment
 import com.atelierdjames.nillafood.InsulinInjection
+import com.atelierdjames.nillafood.InsulinInjectionStorage
 import com.atelierdjames.nillafood.GlucoseStats
 import com.atelierdjames.nillafood.GlucoseStorage
 import com.atelierdjames.nillafood.GlucoseEntry
 import com.atelierdjames.nillafood.TreatmentStorage
-import com.atelierdjames.nillafood.InsulinInjectionStorage
+
 import org.json.JSONObject
 import androidx.core.net.toUri
 import com.atelierdjames.nillafood.TimeInRange
