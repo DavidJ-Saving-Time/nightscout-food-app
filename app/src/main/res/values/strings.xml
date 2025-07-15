@@ -6,6 +6,7 @@
     <string name="delete">X</string>
     <string name="timestamp_hint">Date &amp; Time</string>
     <string name="tab_meals">Meals</string>
+    <string name="tab_injections">Injections</string>
     <string name="tab_insulin">Insulin</string>
     <string name="tab_nightscout">Stats</string>
     <string name="last_scan_format">Last %1$s Pen Scan %2$d hours ago</string>

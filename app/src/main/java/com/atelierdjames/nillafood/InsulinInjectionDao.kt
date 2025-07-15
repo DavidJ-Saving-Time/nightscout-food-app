@@ -10,6 +10,9 @@ interface InsulinInjectionDao {
     @Query("SELECT * FROM insulin_injections ORDER BY time DESC")
     suspend fun getAll(): List<InsulinInjectionEntity>
 
+    @Query("SELECT * FROM insulin_injections WHERE time >= :start")
+    suspend fun getSince(start: Long): List<InsulinInjectionEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(entries: List<InsulinInjectionEntity>)
 

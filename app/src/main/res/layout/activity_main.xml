@@ -12,13 +12,16 @@
         android:layout_height="wrap_content">
 
         <com.google.android.material.tabs.TabItem
-
             android:text="@string/tab_meals"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
 
         <com.google.android.material.tabs.TabItem
+            android:text="@string/tab_injections"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
 
+        <com.google.android.material.tabs.TabItem
             android:text="@string/tab_insulin"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
@@ -225,6 +228,28 @@
 
         <Button
             android:id="@+id/refreshInsulinButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/refresh" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/insulinUsageLayout"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:visibility="gone">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/insulinUsageRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <Button
+            android:id="@+id/refreshInsulinUsageButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/refresh" />
