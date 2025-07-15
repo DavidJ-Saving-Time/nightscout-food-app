@@ -16,6 +16,15 @@ object InsulinInjectionStorage {
         }
     }
 
+    suspend fun replaceAll(context: Context, injections: List<InsulinInjection>) {
+        val dao = db(context).insulinDao()
+        dao.deleteAll()
+        val entities = injections.map { InsulinInjectionEntity.from(it) }
+        if (entities.isNotEmpty()) {
+            dao.insertAll(entities)
+        }
+    }
+
     suspend fun getLatestTimestamp(context: Context): Long? {
         return db(context).insulinDao().getLatestTimestamp()
     }
