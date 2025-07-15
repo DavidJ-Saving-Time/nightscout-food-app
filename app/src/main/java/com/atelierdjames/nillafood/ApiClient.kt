@@ -409,9 +409,7 @@ object ApiClient {
             val url = URL(uri.toString())
             val conn = url.openConnection() as HttpURLConnection
             conn.requestMethod = "GET"
-            val stream = if (conn.responseCode in 200..299) conn.inputStream else conn.errorStream
-            val text = stream?.bufferedReader()?.use(BufferedReader::readText) ?: ""
-            if (!text.trim().startsWith("[")) break
+            val text = conn.inputStream.bufferedReader().use(BufferedReader::readText)
             val arr = JSONArray(text)
             for (i in 0 until arr.length()) {
                 val obj = arr.getJSONObject(i)
@@ -444,9 +442,7 @@ object ApiClient {
             val url = URL(uri.toString())
             val conn = url.openConnection() as HttpURLConnection
             conn.requestMethod = "GET"
-            val stream = if (conn.responseCode in 200..299) conn.inputStream else conn.errorStream
-            val text = stream?.bufferedReader()?.use(BufferedReader::readText) ?: ""
-            if (!text.trim().startsWith("[")) break
+            val text = conn.inputStream.bufferedReader().use(BufferedReader::readText)
             val arr = JSONArray(text)
             if (arr.length() == 0) break
             for (i in 0 until arr.length()) {
@@ -499,9 +495,7 @@ object ApiClient {
             val url = URL(uri.toString())
             val conn = url.openConnection() as HttpURLConnection
             conn.requestMethod = "GET"
-            val stream = if (conn.responseCode in 200..299) conn.inputStream else conn.errorStream
-            val text = stream?.bufferedReader()?.use(BufferedReader::readText) ?: ""
-            if (!text.trim().startsWith("[")) break
+            val text = conn.inputStream.bufferedReader().use(BufferedReader::readText)
             val arr = JSONArray(text)
             if (arr.length() == 0) break
             for (i in 0 until arr.length()) {
