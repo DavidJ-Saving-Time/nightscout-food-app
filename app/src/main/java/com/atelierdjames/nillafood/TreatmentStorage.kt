@@ -32,4 +32,8 @@ object TreatmentStorage {
     suspend fun getLatestTimestamp(context: Context): Long? {
         return db(context).treatmentDao().getLatestTimestamp()
     }
+
+    suspend fun getSince(context: Context, start: Long): List<Treatment> {
+        return db(context).treatmentDao().getSince(start).map { it.toTreatment() }
+    }
 }
