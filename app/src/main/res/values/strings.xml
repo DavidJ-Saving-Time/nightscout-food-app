@@ -24,4 +24,10 @@
     <string name="sd_format">SD: %.1f mmol/L</string>
     <string name="refresh">Refresh</string>
     <string name="master_refresh">Master Refresh</string>
+    <string name="insulin_usage_heading_date">Date</string>
+    <string name="insulin_usage_heading_novorapid">Novorapid</string>
+    <string name="insulin_usage_heading_tresiba">Tresiba</string>
+    <string name="insulin_usage_heading_carbs">Carbs</string>
+    <string name="insulin_usage_heading_protein">Protein</string>
+    <string name="insulin_usage_heading_fat">Fat</string>
 </resources>
