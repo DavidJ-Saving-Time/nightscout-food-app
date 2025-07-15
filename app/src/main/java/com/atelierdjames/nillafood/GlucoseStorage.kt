@@ -16,14 +16,6 @@ object GlucoseStorage {
         db(context).glucoseDao().insertAll(entries)
     }
 
-    suspend fun replaceAll(context: Context, entries: List<GlucoseEntry>) {
-        val dao = db(context).glucoseDao()
-        dao.deleteAll()
-        if (entries.isNotEmpty()) {
-            dao.insertAll(entries)
-        }
-    }
-
     suspend fun getLatestTimestamp(context: Context): Long? {
         return db(context).glucoseDao().getLatestTimestamp()
     }

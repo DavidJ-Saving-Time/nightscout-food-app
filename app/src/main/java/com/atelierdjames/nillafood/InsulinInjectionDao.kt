@@ -18,7 +18,4 @@ interface InsulinInjectionDao {
 
     @Query("SELECT time FROM insulin_injections ORDER BY time DESC LIMIT 1")
     suspend fun getLatestTimestamp(): Long?
-
-    @Query("DELETE FROM insulin_injections")
-    suspend fun deleteAll()
 }
