@@ -21,6 +21,9 @@ import com.atelierdjames.nillafood.OfflineStorage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import androidx.lifecycle.lifecycleScope
 
 
 class MainActivity : AppCompatActivity() {
@@ -28,6 +31,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var adapter: TreatmentAdapter
     private lateinit var insulinAdapter: InsulinAdapter
     private val TAG = "MainActivity"
+    private var pollingJob: kotlinx.coroutines.Job? = null
     private val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
     private val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US).apply {
         timeZone = TimeZone.getTimeZone("UTC")
@@ -128,6 +132,8 @@ class MainActivity : AppCompatActivity() {
         binding.refreshMealsButton.setOnClickListener { loadTreatments() }
         binding.refreshInsulinButton.setOnClickListener { loadInsulinTreatments() }
         binding.refreshStatsButton.setOnClickListener { loadStats() }
+
+        startPolling()
     }
 
     private fun setupMealRecyclerView() {
@@ -154,6 +160,17 @@ class MainActivity : AppCompatActivity() {
         binding.insulinRecyclerView.apply {
             layoutManager = LinearLayoutManager(this@MainActivity)
             adapter = insulinAdapter
+        }
+    }
+
+    private fun startPolling() {
+        pollingJob?.cancel()
+        pollingJob = lifecycleScope.launch(Dispatchers.IO) {
+            while (isActive) {
+                loadTreatments()
+                loadInsulinTreatments()
+                delay(60_000)
+            }
         }
     }
 
@@ -278,5 +295,10 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        pollingJob?.cancel()
     }
 }
