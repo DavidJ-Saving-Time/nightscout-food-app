@@ -32,9 +32,12 @@ class MainActivity : AppCompatActivity() {
     private lateinit var insulinAdapter: InsulinAdapter
     private lateinit var insulinUsageAdapter: InsulinUsageAdapter
     private val TAG = "MainActivity"
-    private val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
+    private val calendar = Calendar.getInstance()
     private val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US).apply {
         timeZone = TimeZone.getTimeZone("UTC")
+    }
+    private val displaySdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US).apply {
+        timeZone = TimeZone.getDefault()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,7 +45,7 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        binding.timestampInput.setText(sdf.format(calendar.time))
+        binding.timestampInput.setText(displaySdf.format(calendar.time))
         binding.timestampInput.setOnClickListener {
             DatePickerDialog(
                 this,
@@ -56,7 +59,7 @@ class MainActivity : AppCompatActivity() {
                             calendar.set(Calendar.HOUR_OF_DAY, hour)
                             calendar.set(Calendar.MINUTE, minute)
                             calendar.set(Calendar.SECOND, 0)
-                            binding.timestampInput.setText(sdf.format(calendar.time))
+                            binding.timestampInput.setText(displaySdf.format(calendar.time))
                         },
                         calendar.get(Calendar.HOUR_OF_DAY),
                         calendar.get(Calendar.MINUTE),
@@ -127,7 +130,9 @@ class MainActivity : AppCompatActivity() {
             }
 
             val timestampText = binding.timestampInput.text.toString()
-            val timestamp = runCatching { sdf.parse(timestampText)?.time }.getOrNull() ?: System.currentTimeMillis()
+            val timestamp = runCatching {
+                displaySdf.parse(timestampText)?.time
+            }.getOrNull() ?: System.currentTimeMillis()
             val treatment = Treatment(carbs, protein, fat, note, timestamp)
             ApiClient.sendTreatment(this, treatment) { success ->
                 runOnUiThread {
@@ -310,7 +315,7 @@ class MainActivity : AppCompatActivity() {
         binding.fatInput.text?.clear()
 
         calendar.time = Date()
-        binding.timestampInput.setText(sdf.format(calendar.time))
+        binding.timestampInput.setText(displaySdf.format(calendar.time))
     }
     private fun showTreatmentDetails(treatment: Treatment) {
         Toast.makeText(this, "Selected: ${treatment.note}", Toast.LENGTH_SHORT).show()
