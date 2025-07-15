@@ -44,6 +44,56 @@ object ApiClient {
         return obj.optLong("date")
     }
 
+    private suspend fun fetchNewEntries(
+        context: Context,
+        start: java.time.Instant,
+        end: java.time.Instant
+    ) {
+        val formatter = java.time.format.DateTimeFormatter
+            .ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+            .withZone(java.time.ZoneOffset.UTC)
+
+        try {
+            val uri = ENTRIES_URL.toUri().buildUpon()
+                .appendQueryParameter("find[dateString][\$gte]", formatter.format(start))
+                .appendQueryParameter("find[dateString][\$lte]", formatter.format(end))
+                .appendQueryParameter("count", "10000")
+                .build()
+
+            val url = URL(uri.toString())
+            val conn = url.openConnection() as HttpURLConnection
+            conn.requestMethod = "GET"
+
+            val result = conn.inputStream.bufferedReader().use(BufferedReader::readText)
+            val newEntries = mutableListOf<GlucoseEntry>()
+            val jsonArray = JSONArray(result)
+            for (i in 0 until jsonArray.length()) {
+                val obj = jsonArray.getJSONObject(i)
+                val sgv = obj.optDouble("sgv", Double.NaN)
+                val id = obj.optString("_id")
+                val direction = obj.optString("direction", null)
+                val device = obj.optString("device", null)
+                val date = parseGlucoseTime(obj)
+                val noise = if (obj.has("noise")) obj.optInt("noise") else null
+                if (!sgv.isNaN() && id.isNotEmpty()) {
+                    newEntries.add(
+                        GlucoseEntry(
+                            id = id,
+                            sgv = sgv.toFloat(),
+                            direction = direction,
+                            device = device,
+                            date = date,
+                            noise = noise
+                        )
+                    )
+                }
+            }
+            GlucoseStorage.addEntries(context, newEntries)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
     fun sendTreatment(context: Context, treatment: Treatment, callback: (Boolean) -> Unit) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -173,41 +223,7 @@ object ApiClient {
 
             // Fetch any new entries from the API and append them to local storage
             try {
-                val uri = ENTRIES_URL.toUri().buildUpon()
-                    .appendQueryParameter("find[dateString][\$gte]", formatter.format(startInstant))
-                    .appendQueryParameter("find[dateString][\$lte]", formatter.format(now))
-                    .appendQueryParameter("count", "10000")
-                    .build()
-
-                val url = URL(uri.toString())
-                val conn = url.openConnection() as HttpURLConnection
-                conn.requestMethod = "GET"
-
-                val result = conn.inputStream.bufferedReader().use(BufferedReader::readText)
-                val newEntries = mutableListOf<GlucoseEntry>()
-                val jsonArray = JSONArray(result)
-                for (i in 0 until jsonArray.length()) {
-                    val obj = jsonArray.getJSONObject(i)
-                    val sgv = obj.optDouble("sgv", Double.NaN)
-                    val id = obj.optString("_id")
-                    val direction = obj.optString("direction", null)
-                    val device = obj.optString("device", null)
-                    val date = parseGlucoseTime(obj)
-                    val noise = if (obj.has("noise")) obj.optInt("noise") else null
-                    if (!sgv.isNaN() && id.isNotEmpty()) {
-                        newEntries.add(
-                            GlucoseEntry(
-                                id = id,
-                                sgv = sgv.toFloat(),
-                                direction = direction,
-                                device = device,
-                                date = date,
-                                noise = noise
-                            )
-                        )
-                    }
-                }
-                GlucoseStorage.addEntries(context, newEntries)
+                fetchNewEntries(context, startInstant, now)
             } catch (e: Exception) {
                 // Network failures shouldn't prevent using existing cached data
                 e.printStackTrace()
@@ -243,41 +259,7 @@ object ApiClient {
                 ?: now.minus(14, java.time.temporal.ChronoUnit.DAYS)
 
             try {
-                val uri = ENTRIES_URL.toUri().buildUpon()
-                    .appendQueryParameter("find[dateString][\$gte]", formatter.format(startInstant))
-                    .appendQueryParameter("find[dateString][\$lte]", formatter.format(now))
-                    .appendQueryParameter("count", "10000")
-                    .build()
-
-                val url = URL(uri.toString())
-                val conn = url.openConnection() as HttpURLConnection
-                conn.requestMethod = "GET"
-
-                val result = conn.inputStream.bufferedReader().use(BufferedReader::readText)
-                val newEntries = mutableListOf<GlucoseEntry>()
-                val jsonArray = JSONArray(result)
-                for (i in 0 until jsonArray.length()) {
-                    val obj = jsonArray.getJSONObject(i)
-                    val sgv = obj.optDouble("sgv", Double.NaN)
-                    val id = obj.optString("_id")
-                    val direction = obj.optString("direction", null)
-                    val device = obj.optString("device", null)
-                    val date = parseGlucoseTime(obj)
-                    val noise = if (obj.has("noise")) obj.optInt("noise") else null
-                    if (!sgv.isNaN() && id.isNotEmpty()) {
-                        newEntries.add(
-                            GlucoseEntry(
-                                id = id,
-                                sgv = sgv.toFloat(),
-                                direction = direction,
-                                device = device,
-                                date = date,
-                                noise = noise
-                            )
-                        )
-                    }
-                }
-                GlucoseStorage.addEntries(context, newEntries)
+                fetchNewEntries(context, startInstant, now)
             } catch (e: Exception) {
                 e.printStackTrace()
             }
