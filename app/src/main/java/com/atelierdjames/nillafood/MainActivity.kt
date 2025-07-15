@@ -15,6 +15,7 @@ import com.google.android.material.tabs.TabLayout
 import com.atelierdjames.nillafood.databinding.ActivityMainBinding
 import com.atelierdjames.nillafood.InsulinAdapter
 import com.atelierdjames.nillafood.InsulinInjection
+import com.atelierdjames.nillafood.OfflineStorage
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -62,6 +63,7 @@ class MainActivity : AppCompatActivity() {
         setupInsulinRecyclerView()
         loadInsulinTreatments()
         loadTreatments()
+        OfflineStorage.retryUnsyncedData(this)
 
         binding.tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab) {
@@ -106,7 +108,10 @@ class MainActivity : AppCompatActivity() {
                 runOnUiThread {
                     if (success) {
                         Toast.makeText(this, "Sent to Nightscout", Toast.LENGTH_SHORT).show()
-                        // loadTreatments() // Refresh list
+                        OfflineStorage.retryUnsyncedData(this)
+                    } else {
+                        OfflineStorage.saveLocally(this, treatment)
+                        Toast.makeText(this, "Saved locally. Will retry when online.", Toast.LENGTH_SHORT).show()
                     }
 
                     loadTreatments()
