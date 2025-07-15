@@ -19,4 +19,8 @@ object GlucoseStorage {
     suspend fun getLatestTimestamp(context: Context): Long? {
         return db(context).glucoseDao().getLatestTimestamp()
     }
+
+    suspend fun getEarliestTimestamp(context: Context): Long? {
+        return db(context).glucoseDao().getEarliestTimestamp()
+    }
 }

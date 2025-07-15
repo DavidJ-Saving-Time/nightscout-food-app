@@ -328,6 +328,15 @@ object ApiClient {
             val hba1cPercent = if (!overallAvgMgdl.isNaN()) (overallAvgMgdl + 46.7f) / 28.7f else Float.NaN
             val hba1cMmolMol = if (!hba1cPercent.isNaN()) hba1cPercent * 10.93f else Float.NaN
 
+            val earliestTs = GlucoseStorage.getEarliestTimestamp(context)
+            val latestTs = GlucoseStorage.getLatestTimestamp(context)
+            val daysUsed = if (earliestTs != null && latestTs != null) {
+                java.time.temporal.ChronoUnit.DAYS.between(
+                    java.time.Instant.ofEpochMilli(earliestTs),
+                    java.time.Instant.ofEpochMilli(latestTs)
+                ).toInt() + 1
+            } else 0
+
             val stats = GlucoseStats(
                 avg24h = avgFor(1),
                 avg7d = avgFor(7),
@@ -336,7 +345,8 @@ object ApiClient {
                 tir7d = tirFor(7),
                 tir14d = tirFor(14),
                 hba1c = hba1cMmolMol,
-                sd = sd
+                sd = sd,
+                daysUsed = daysUsed
             )
 
             withContext(Dispatchers.Main) { callback(stats) }
