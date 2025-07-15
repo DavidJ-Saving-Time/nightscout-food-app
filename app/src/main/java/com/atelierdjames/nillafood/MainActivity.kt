@@ -15,18 +15,22 @@ import com.google.android.material.tabs.TabLayout
 import com.atelierdjames.nillafood.databinding.ActivityMainBinding
 import com.atelierdjames.nillafood.InsulinAdapter
 import com.atelierdjames.nillafood.InsulinInjection
+import com.atelierdjames.nillafood.InsulinUsageAdapter
+import com.atelierdjames.nillafood.InsulinUsageSummary
 
 import com.atelierdjames.nillafood.OfflineStorage
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var adapter: TreatmentAdapter
     private lateinit var insulinAdapter: InsulinAdapter
+    private lateinit var insulinUsageAdapter: InsulinUsageAdapter
     private val TAG = "MainActivity"
     private val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
     private val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US).apply {
@@ -67,7 +71,9 @@ class MainActivity : AppCompatActivity() {
 
         setupMealRecyclerView()
         setupInsulinRecyclerView()
+        setupInsulinUsageRecyclerView()
         loadInsulinTreatments()
+        loadInsulinUsage()
         loadTreatments()
         loadStats()
         OfflineStorage.retryUnsyncedData(this)
@@ -78,18 +84,28 @@ class MainActivity : AppCompatActivity() {
                     0 -> {
                         binding.mealsLayout.visibility = View.VISIBLE
                         binding.insulinLayout.visibility = View.GONE
+                        binding.insulinUsageLayout.visibility = View.GONE
                         binding.nightscoutLayout.visibility = View.GONE
                         loadTreatments()
                     }
                     1 -> {
                         binding.mealsLayout.visibility = View.GONE
                         binding.insulinLayout.visibility = View.VISIBLE
+                        binding.insulinUsageLayout.visibility = View.GONE
                         binding.nightscoutLayout.visibility = View.GONE
                         loadInsulinTreatments()
+                    }
+                    2 -> {
+                        binding.mealsLayout.visibility = View.GONE
+                        binding.insulinLayout.visibility = View.GONE
+                        binding.insulinUsageLayout.visibility = View.VISIBLE
+                        binding.nightscoutLayout.visibility = View.GONE
+                        loadInsulinUsage()
                     }
                     else -> {
                         binding.mealsLayout.visibility = View.GONE
                         binding.insulinLayout.visibility = View.GONE
+                        binding.insulinUsageLayout.visibility = View.GONE
                         binding.nightscoutLayout.visibility = View.VISIBLE
                         loadStats()
                     }
@@ -130,6 +146,7 @@ class MainActivity : AppCompatActivity() {
         }
         binding.refreshMealsButton.setOnClickListener { loadTreatments() }
         binding.refreshInsulinButton.setOnClickListener { loadInsulinTreatments() }
+        binding.refreshInsulinUsageButton.setOnClickListener { loadInsulinUsage() }
         binding.refreshStatsButton.setOnClickListener { loadStats() }
     }
 
@@ -160,6 +177,14 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun setupInsulinUsageRecyclerView() {
+        insulinUsageAdapter = InsulinUsageAdapter()
+        binding.insulinUsageRecyclerView.apply {
+            layoutManager = LinearLayoutManager(this@MainActivity)
+            adapter = insulinUsageAdapter
+        }
+    }
+
     private fun loadTreatments() {
         Log.d(TAG, "Loading treatments...")
         ApiClient.getRecentTreatments(this) { result ->
@@ -186,6 +211,15 @@ class MainActivity : AppCompatActivity() {
                     insulinAdapter.submitList(it)
                     updateLastScanText(it)
                 }
+            }
+        }
+    }
+
+    private fun loadInsulinUsage() {
+        CoroutineScope(Dispatchers.IO).launch {
+            val data = InsulinInjectionStorage.getLast7DaysSummary(this@MainActivity)
+            withContext(Dispatchers.Main) {
+                insulinUsageAdapter.submitList(data)
             }
         }
     }

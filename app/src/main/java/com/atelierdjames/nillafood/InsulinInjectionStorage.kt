@@ -19,4 +19,39 @@ object InsulinInjectionStorage {
     suspend fun getLatestTimestamp(context: Context): Long? {
         return db(context).insulinDao().getLatestTimestamp()
     }
+
+    suspend fun getLast7DaysSummary(context: Context): List<InsulinUsageSummary> {
+        val zone = java.time.ZoneId.systemDefault()
+        val today = java.time.LocalDate.now(zone)
+        val startDate = today.minusDays(6)
+        val startMillis = startDate.atStartOfDay(zone).toInstant().toEpochMilli()
+
+        val injections = db(context).insulinDao().getSince(startMillis).map { it.toInjection() }
+
+        val map = mutableMapOf<java.time.LocalDate, FloatArray>()
+        for (inj in injections) {
+            val date = java.time.Instant.ofEpochMilli(inj.time).atZone(zone).toLocalDate()
+            if (date.isBefore(startDate) || date.isAfter(today)) continue
+            val totals = map.getOrPut(date) { floatArrayOf(0f, 0f) }
+            when {
+                inj.insulin.equals("Novorapid", ignoreCase = true) -> totals[0] += inj.units
+                inj.insulin.equals("Tresiba", ignoreCase = true) -> totals[1] += inj.units
+            }
+        }
+
+        val formatter = java.time.format.DateTimeFormatter.ofPattern("MMM dd")
+        val result = mutableListOf<InsulinUsageSummary>()
+        for (i in 0..6) {
+            val date = startDate.plusDays(i.toLong())
+            val totals = map[date] ?: floatArrayOf(0f, 0f)
+            result.add(
+                InsulinUsageSummary(
+                    day = date.format(formatter),
+                    novorapid = totals[0],
+                    tresiba = totals[1]
+                )
+            )
+        }
+        return result
+    }
 }
