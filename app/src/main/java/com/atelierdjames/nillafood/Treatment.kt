@@ -1,6 +1,8 @@
 package com.atelierdjames.nillafood
 
 import org.json.JSONObject
+import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 import java.util.*
@@ -16,9 +18,9 @@ data class Treatment(
     fun toJson(): JSONObject {
         return JSONObject().apply {
             put("eventType", "Meal Entry")
-            put("carbs", carbs)
-            put("protein", protein)
-            put("fat", fat)
+            put("carbs", BigDecimal.valueOf(carbs.toDouble()).setScale(1, RoundingMode.HALF_UP))
+            put("protein", BigDecimal.valueOf(protein.toDouble()).setScale(1, RoundingMode.HALF_UP))
+            put("fat", BigDecimal.valueOf(fat.toDouble()).setScale(1, RoundingMode.HALF_UP))
             put("notes", note)
             put("created_at", DateTimeFormatter.ISO_INSTANT.format(Instant.ofEpochMilli(timestamp)))
             put("enteredBy", "Nilla")
