@@ -54,8 +54,6 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     testImplementation(libs.junit)
-    testImplementation("androidx.room:room-testing:2.6.1")
-    testImplementation("androidx.test:core:1.5.0")
 
     // Iconics core + views (keep versions in sync)
     // core + views modules for Iconics
