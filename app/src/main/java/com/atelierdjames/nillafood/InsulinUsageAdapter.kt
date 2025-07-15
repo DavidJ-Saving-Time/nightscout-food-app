@@ -19,11 +19,17 @@ class InsulinUsageAdapter : RecyclerView.Adapter<InsulinUsageAdapter.ViewHolder>
         private val dateText: TextView = itemView.findViewById(R.id.insulinUsageDate)
         private val novaText: TextView = itemView.findViewById(R.id.insulinUsageNovorapid)
         private val tresText: TextView = itemView.findViewById(R.id.insulinUsageTresiba)
+        private val carbText: TextView = itemView.findViewById(R.id.insulinUsageCarbs)
+        private val proteinText: TextView = itemView.findViewById(R.id.insulinUsageProtein)
+        private val fatText: TextView = itemView.findViewById(R.id.insulinUsageFat)
 
         fun bind(item: InsulinUsageSummary) {
             dateText.text = item.day
             novaText.text = item.novorapid.toString()
             tresText.text = item.tresiba.toString()
+            carbText.text = item.carbs.toString()
+            proteinText.text = item.protein.toString()
+            fatText.text = item.fat.toString()
         }
     }
 

@@ -21,4 +21,7 @@ interface TreatmentDao {
 
     @Query("SELECT timestamp FROM treatments ORDER BY timestamp DESC LIMIT 1")
     suspend fun getLatestTimestamp(): Long?
+
+    @Query("SELECT * FROM treatments WHERE timestamp >= :start")
+    suspend fun getSince(start: Long): List<TreatmentEntity>
 }
