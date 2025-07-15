@@ -15,6 +15,9 @@ import com.google.android.material.tabs.TabLayout
 import com.atelierdjames.nillafood.databinding.ActivityMainBinding
 import com.atelierdjames.nillafood.InsulinAdapter
 import com.atelierdjames.nillafood.InsulinInjection
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -257,6 +260,9 @@ class MainActivity : AppCompatActivity() {
         ApiClient.deleteTreatment(id) { success ->
             runOnUiThread {
                 if (success) {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        TreatmentStorage.delete(this@MainActivity, id)
+                    }
                     Toast.makeText(this, "Deleted", Toast.LENGTH_SHORT).show()
                     loadTreatments()
                 } else {

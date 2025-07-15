@@ -13,6 +13,12 @@ interface TreatmentDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(entries: List<TreatmentEntity>)
 
+    @Query("DELETE FROM treatments WHERE id = :id")
+    suspend fun deleteById(id: String)
+
+    @Query("DELETE FROM treatments")
+    suspend fun deleteAll()
+
     @Query("SELECT timestamp FROM treatments ORDER BY timestamp DESC LIMIT 1")
     suspend fun getLatestTimestamp(): Long?
 }
