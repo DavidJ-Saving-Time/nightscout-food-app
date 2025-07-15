@@ -109,7 +109,22 @@ object ApiClient {
                     os.write(treatment.toJson().toString().toByteArray())
                 }
 
-                val success = conn.responseCode in 200..299
+                var success = conn.responseCode in 200..299
+                if (success) {
+                    try {
+                        val body = conn.inputStream.bufferedReader().use(BufferedReader::readText)
+                        val arr = JSONArray(body)
+                        if (arr.length() > 0) {
+                            val saved = Treatment.fromJson(arr.getJSONObject(0))
+                            TreatmentStorage.addOrUpdate(context, listOf(saved))
+                        } else {
+                            success = false
+                        }
+                    } catch (_: Exception) {
+                        success = false
+                    }
+                }
+
                 withContext(Dispatchers.Main) {
                     callback(success)
                 }
