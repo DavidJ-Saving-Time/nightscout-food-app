@@ -72,13 +72,11 @@ object ApiClient {
 
     fun getRecentTreatments(context: Context, callback: (List<Treatment>?) -> Unit) {
         CoroutineScope(Dispatchers.IO).launch {
-            val lastLocal = TreatmentStorage.getLatestTimestamp(context)
             try {
                 val uri = NIGHTSCOUT_URL.toUri().buildUpon()
                     .appendQueryParameter("find[eventType]", "Meal Entry")
                     .appendQueryParameter("count", "100")
                     .appendQueryParameter("token", TOKEN)
-                    .apply { lastLocal?.let { appendQueryParameter("find[created_at][\$gt]", java.time.Instant.ofEpochMilli(it).toString()) } }
                     .build()
                 val url = URL(uri.toString())
                 val conn = url.openConnection() as HttpURLConnection
@@ -95,7 +93,7 @@ object ApiClient {
                         newTreatments.add(Treatment.fromJson(jsonObject))
                     }
                 }
-                TreatmentStorage.addOrUpdate(context, newTreatments)
+                TreatmentStorage.replaceAll(context, newTreatments)
             } catch (e: Exception) {
                 e.printStackTrace()
             }
