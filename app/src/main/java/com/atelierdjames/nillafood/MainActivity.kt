@@ -145,16 +145,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
         binding.refreshMealsButton.setOnClickListener { loadTreatments() }
-        binding.masterRefreshButton.setOnClickListener {
-            ApiClient.masterRefresh(this) {
-                runOnUiThread {
-                    loadTreatments()
-                    loadInsulinTreatments()
-                    loadInsulinUsage()
-                    loadStats()
-                }
-            }
-        }
         binding.refreshInsulinButton.setOnClickListener { loadInsulinTreatments() }
         binding.refreshInsulinUsageButton.setOnClickListener { loadInsulinUsage() }
         binding.refreshStatsButton.setOnClickListener { loadStats() }
