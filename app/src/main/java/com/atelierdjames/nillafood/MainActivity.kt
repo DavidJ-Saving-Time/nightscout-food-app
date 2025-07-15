@@ -9,13 +9,8 @@ import android.view.View
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.appcompat.app.AppCompatActivity
-import androidx.activity.viewModels
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-import androidx.lifecycle.Lifecycle
-import kotlinx.coroutines.launch
 import com.google.android.material.tabs.TabLayout
 import com.atelierdjames.nillafood.databinding.ActivityMainBinding
 import com.atelierdjames.nillafood.InsulinAdapter
@@ -25,7 +20,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var adapter: TreatmentAdapter
     private lateinit var insulinAdapter: InsulinAdapter
-    private val analyticsViewModel: AnalyticsViewModel by viewModels()
     private val TAG = "MainActivity"
     private val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
     private val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US).apply {
@@ -82,24 +76,11 @@ class MainActivity : AppCompatActivity() {
                         binding.insulinLayout.visibility = View.VISIBLE
                         binding.nightscoutLayout.visibility = View.GONE
                     }
-                    2 -> {
-                        binding.mealsLayout.visibility = View.GONE
-                        binding.insulinLayout.visibility = View.GONE
-                        binding.nightscoutLayout.visibility = View.VISIBLE
-                        binding.analyticsLayout.visibility = View.GONE
-                        loadStats()
-                    }
-                    3 -> {
-                        binding.mealsLayout.visibility = View.GONE
-                        binding.insulinLayout.visibility = View.GONE
-                        binding.nightscoutLayout.visibility = View.GONE
-                        binding.analyticsLayout.visibility = View.VISIBLE
-                    }
                     else -> {
                         binding.mealsLayout.visibility = View.GONE
                         binding.insulinLayout.visibility = View.GONE
-                        binding.nightscoutLayout.visibility = View.GONE
-                        binding.analyticsLayout.visibility = View.GONE
+                        binding.nightscoutLayout.visibility = View.VISIBLE
+                        loadStats()
                     }
                 }
             }
@@ -136,8 +117,6 @@ class MainActivity : AppCompatActivity() {
         binding.refreshMealsButton.setOnClickListener { loadTreatments() }
         binding.refreshInsulinButton.setOnClickListener { loadInsulinTreatments() }
         binding.refreshStatsButton.setOnClickListener { loadStats() }
-
-        observeAnalytics()
     }
 
     private fun setupMealRecyclerView() {
@@ -260,44 +239,6 @@ class MainActivity : AppCompatActivity() {
         tres?.let { parts.add(getString(R.string.last_scan_format, "Tresiba", it)) }
 
         binding.lastScanText.text = parts.joinToString("\n")
-    }
-
-    private fun observeAnalytics() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
-                launch {
-                    analyticsViewModel.iobFlow.collect { points ->
-                        val current = points.lastOrNull()?.iob ?: 0f
-                        binding.currentIobText.text = getString(R.string.current_iob_format, current)
-                    }
-                }
-                launch {
-                    analyticsViewModel.mealImpacts.collect { impacts ->
-                        val avg = impacts.mapNotNull { it.delta }.average().toFloat()
-                        if (!avg.isNaN()) {
-                            binding.avgSpikeText.text = getString(R.string.average_spike_format, avg)
-                        }
-                        val summaries = impacts.take(3)
-                        val cards = listOf(binding.meal1Text, binding.meal2Text, binding.meal3Text)
-                        for (i in cards.indices) {
-                            val imp = summaries.getOrNull(i)
-                            cards[i].text = imp?.let { getString(R.string.meal_summary_format, it.carbs, it.delta ?: Float.NaN) } ?: ""
-                        }
-                    }
-                }
-                launch {
-                    analyticsViewModel.featureFlow.collect { features ->
-                        val entries = features.mapNotNull { it.glucose?.let { g -> com.github.mikephil.charting.data.Entry(it.ts.toFloat(), g) } }
-                        val lineSet = com.github.mikephil.charting.data.LineDataSet(entries, "Glucose")
-                        val iobEntries = analyticsViewModel.iobFlow.value.map { com.github.mikephil.charting.data.Entry(it.ts.toFloat(), it.iob * 20f) }
-                        val iobSet = com.github.mikephil.charting.data.LineDataSet(iobEntries, "IOB")
-                        val data = com.github.mikephil.charting.data.LineData(lineSet, iobSet)
-                        binding.analyticsChart.data = data
-                        binding.analyticsChart.invalidate()
-                    }
-                }
-            }
-        }
     }
     private fun resetForm() {
         binding.carbsInput.text?.clear()
