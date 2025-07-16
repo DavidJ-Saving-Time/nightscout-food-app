@@ -17,7 +17,7 @@ class TreatmentAdapter(
 ) : RecyclerView.Adapter<TreatmentAdapter.ViewHolder>() {
 
     private val items = mutableListOf<Treatment>()
-    private var highlightedPosition: Int? = null
+    private val newItemTimestamps = mutableSetOf<Long>()
 
     // Improved list submission with diffing
     fun submitList(newList: List<Treatment>) {
@@ -48,7 +48,7 @@ class TreatmentAdapter(
         private val createdAtText: TextView = itemView.findViewById(R.id.createdAtText)
         private val deleteButton: View = itemView.findViewById(R.id.deleteButton)
 
-        fun bind(treatment: Treatment, highlighted: Boolean) {
+        fun bind(treatment: Treatment, isNew: Boolean) {
             carbsText.text = itemView.context.getString(R.string.carbs_format, treatment.carbs)
             proteinText.text = itemView.context.getString(R.string.protein_format, treatment.protein)
             fatText.text = itemView.context.getString(R.string.fat_format, treatment.fat)
@@ -58,7 +58,7 @@ class TreatmentAdapter(
             itemView.setOnClickListener { onItemClick(treatment) }
             deleteButton.setOnClickListener { onDelete(treatment) }
 
-            val colorRes = if (highlighted) R.color.highlight else android.R.color.transparent
+            val colorRes = if (isNew) R.color.highlight else android.R.color.transparent
             itemView.setBackgroundColor(ContextCompat.getColor(itemView.context, colorRes))
         }
 
@@ -81,29 +81,16 @@ class TreatmentAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val highlighted = position == highlightedPosition
-        holder.bind(items[position], highlighted)
+        val isNew = newItemTimestamps.contains(items[position].timestamp)
+        holder.bind(items[position], isNew)
     }
 
     override fun getItemCount() = items.size
 
-    fun highlightPosition(pos: Int) {
-        val previous = highlightedPosition
-        highlightedPosition = pos
-        previous?.let { if (it < itemCount) notifyItemChanged(it) }
-        if (pos < itemCount) {
-            notifyItemChanged(pos)
-        }
-    }
-
-    fun clearHighlight() {
-        highlightedPosition?.let {
-            val prev = it
-            highlightedPosition = null
-            if (prev < itemCount) {
-                notifyItemChanged(prev)
-            }
-        }
+    fun markNewItems(newItems: List<Treatment>) {
+        val timestamps = newItems.map { it.timestamp }
+        newItemTimestamps.addAll(timestamps)
+        notifyDataSetChanged()
     }
 }
 
