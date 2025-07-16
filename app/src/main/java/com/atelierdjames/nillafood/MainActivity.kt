@@ -42,7 +42,6 @@ class MainActivity : AppCompatActivity() {
     private val displaySdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US).apply {
         timeZone = TimeZone.getDefault()
     }
-    private var lastTreatmentTimestamp: Long? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -161,6 +160,7 @@ class MainActivity : AppCompatActivity() {
                                 }
                             withContext(Dispatchers.Main) {
                                 if (logged) {
+                                    adapter.markNewItems(listOf(treatment))
                                     showLoggedMealDialog(treatment)
                                 }
                             }
@@ -223,7 +223,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun loadTreatments(onComplete: ((List<Treatment>) -> Unit)? = null) {
         Log.d(TAG, "Loading treatments...")
-        val wasAtTop = !binding.treatmentsRecyclerView.canScrollVertically(-1)
         CoroutineScope(Dispatchers.IO).launch {
             val local = TreatmentStorage.getAll(this@MainActivity)
             withContext(Dispatchers.Main) {
@@ -241,16 +240,6 @@ class MainActivity : AppCompatActivity() {
                         if (updated.isNotEmpty()) {
                             binding.treatmentsRecyclerView.scrollToPosition(0)
                         }
-                        val newFirst = updated.firstOrNull()?.timestamp
-                        val newItems = if (lastTreatmentTimestamp != null) {
-                            updated.filter { it.timestamp > lastTreatmentTimestamp!! }
-                        } else {
-                            updated
-                        }
-                        if (newItems.isNotEmpty()) {
-                            adapter.markNewItems(newItems)
-                        }
-                        lastTreatmentTimestamp = newFirst
                         onComplete?.invoke(updated)
                     }
                 }
