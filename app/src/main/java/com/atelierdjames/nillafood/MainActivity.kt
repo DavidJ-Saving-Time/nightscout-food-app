@@ -245,12 +245,12 @@ class MainActivity : AppCompatActivity() {
                         val newItems = if (lastTreatmentTimestamp != null) {
                             updated.filter { it.timestamp > lastTreatmentTimestamp!! }
                         } else {
-                            updated
+                            emptyList()
                         }
                         if (newItems.isNotEmpty()) {
                             adapter.markNewItems(newItems)
                         }
-                        lastTreatmentTimestamp = newFirst
+                        lastTreatmentTimestamp = newFirst ?: lastTreatmentTimestamp
                         onComplete?.invoke(updated)
                     }
                 }
