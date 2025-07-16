@@ -57,7 +57,7 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        binding.timestampInput.setText(displaySdf.format(calendar.time))
+        updateTimestampInput()
         binding.timestampInput.setOnClickListener {
             DatePickerDialog(
                 this,
@@ -71,7 +71,7 @@ class MainActivity : AppCompatActivity() {
                             calendar.set(Calendar.HOUR_OF_DAY, hour)
                             calendar.set(Calendar.MINUTE, minute)
                             calendar.set(Calendar.SECOND, 0)
-                            binding.timestampInput.setText(displaySdf.format(calendar.time))
+                            updateTimestampInput()
                         },
                         calendar.get(Calendar.HOUR_OF_DAY),
                         calendar.get(Calendar.MINUTE),
@@ -386,6 +386,11 @@ class MainActivity : AppCompatActivity() {
 
         binding.lastScanText.text = parts.joinToString("\n")
     }
+
+    /** Update the timestamp input field based on the current calendar. */
+    private fun updateTimestampInput() {
+        binding.timestampInput.setText(displaySdf.format(calendar.time))
+    }
     /** Reset all form fields back to the current time and empty values. */
     private fun resetForm() {
         binding.carbsInput.text?.clear()
@@ -393,7 +398,7 @@ class MainActivity : AppCompatActivity() {
         binding.fatInput.text?.clear()
 
         calendar.time = Date()
-        binding.timestampInput.setText(displaySdf.format(calendar.time))
+        updateTimestampInput()
     }
 
     /** Display a dialog confirming that a meal was logged successfully. */
