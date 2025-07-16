@@ -239,12 +239,13 @@ class MainActivity : AppCompatActivity() {
                             binding.treatmentsRecyclerView.scrollToPosition(0)
                         }
                         val newFirst = updated.firstOrNull()?.timestamp
-                        val hasNewItem = newFirst != null && (lastTreatmentTimestamp == null || newFirst > lastTreatmentTimestamp!!)
-                        if (hasNewItem) {
-                            adapter.highlightPosition(0)
-                            binding.treatmentsRecyclerView.postDelayed({
-                                adapter.clearHighlight()
-                            }, 3000)
+                        val newItems = if (lastTreatmentTimestamp != null) {
+                            updated.filter { it.timestamp > lastTreatmentTimestamp!! }
+                        } else {
+                            updated
+                        }
+                        if (newItems.isNotEmpty()) {
+                            adapter.markNewItems(newItems)
                         }
                         lastTreatmentTimestamp = newFirst
                         onComplete?.invoke(updated)
