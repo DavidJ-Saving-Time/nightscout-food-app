@@ -265,11 +265,24 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun loadInsulinTreatments() {
-        ApiClient.getInsulinInjections(this) { result ->
-            runOnUiThread {
-                result?.let {
-                    insulinAdapter.submitList(it)
-                    updateLastScanText(it)
+        CoroutineScope(Dispatchers.IO).launch {
+            // Load any cached injections first so something is displayed
+            val local = InsulinInjectionStorage.getAll(this@MainActivity)
+            withContext(Dispatchers.Main) {
+                insulinAdapter.submitList(local)
+                updateLastScanText(local)
+            }
+
+            // Fetch latest data from the API
+            ApiClient.getInsulinInjections(this@MainActivity) {
+                // After the API call completes, reload from Room so the
+                // RecyclerView shows the updated list
+                CoroutineScope(Dispatchers.IO).launch {
+                    val updated = InsulinInjectionStorage.getAll(this@MainActivity)
+                    withContext(Dispatchers.Main) {
+                        insulinAdapter.submitList(updated)
+                        updateLastScanText(updated)
+                    }
                 }
             }
         }
