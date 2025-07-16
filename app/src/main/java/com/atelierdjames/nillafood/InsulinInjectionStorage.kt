@@ -1,14 +1,22 @@
 package com.atelierdjames.nillafood
 
+/**
+ * Helper object that hides direct database access for insulin injection data.
+ * All methods are suspend functions so they can be used from coroutines.
+ */
+
 import android.content.Context
 
 object InsulinInjectionStorage {
+    /** Get the [AppDatabase] instance for the given context. */
     private fun db(context: Context) = DatabaseProvider.db(context)
 
+    /** Retrieve all stored injections from the database. */
     suspend fun getAll(context: Context): List<InsulinInjection> {
         return db(context).insulinDao().getAll().map { it.toInjection() }
     }
 
+    /** Store a list of injections in bulk. */
     suspend fun addAll(context: Context, injections: List<InsulinInjection>) {
         val entities = injections.map { InsulinInjectionEntity.from(it) }
         if (entities.isNotEmpty()) {
@@ -16,6 +24,7 @@ object InsulinInjectionStorage {
         }
     }
 
+    /** Replace the entire injection table with the provided list. */
     suspend fun replaceAll(context: Context, injections: List<InsulinInjection>) {
         val dao = db(context).insulinDao()
         dao.deleteAll()
@@ -25,10 +34,15 @@ object InsulinInjectionStorage {
         }
     }
 
+    /** Time of the most recent injection recorded. */
     suspend fun getLatestTimestamp(context: Context): Long? {
         return db(context).insulinDao().getLatestTimestamp()
     }
 
+    /**
+     * Build a 7 day usage summary combining insulin injections and meal entries
+     * to present in the dashboard.
+     */
     suspend fun getLast7DaysSummary(context: Context): List<InsulinUsageSummary> {
         val zone = java.time.ZoneId.systemDefault()
         val today = java.time.LocalDate.now(zone)
