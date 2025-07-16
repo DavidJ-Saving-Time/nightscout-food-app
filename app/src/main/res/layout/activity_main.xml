@@ -167,13 +167,17 @@
                     android:text="{faw-cloud-upload-alt} Log Meal!"
                 />
 
-                <Button
+                <com.mikepenz.iconics.view.IconicsButton
                     android:id="@+id/timestampInput"
-                    android:text="Set Time"
+
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:layout_marginEnd="8dp" />
+                    android:layout_marginStart="8dp"
+                    android:drawablePadding="8dp"
+                    android:background="@color/settime"
+                    android:textColor="@color/your_text_color"
+                    android:text="{faw-cloud-upload-alt} Log Meal!"/>
 
 
             </LinearLayout>

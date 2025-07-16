@@ -9,9 +9,10 @@
     <color name="white">#FFFFFFFF</color>
     <color name="red">#e54c0d</color>
     <color name="your_button_color">#4ee50d</color>
-    <color name="your_text_color">#FFFFFF</color>
+    <color name="your_text_color">#000000</color>
     <color name="tir_in_range">#4CAF50</color>
     <color name="tir_above">#F44336</color>
     <color name="tir_below">#2196F3</color>
     <color name="highlight">#FFF59D</color>
+    <color name="settime">#9de0ff</color>
 </resources>

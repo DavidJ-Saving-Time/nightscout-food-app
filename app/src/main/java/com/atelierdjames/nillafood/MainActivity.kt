@@ -47,7 +47,7 @@ class MainActivity : AppCompatActivity() {
     private val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US).apply {
         timeZone = TimeZone.getTimeZone("UTC")
     }
-    private val displaySdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US).apply {
+    private val displaySdf = SimpleDateFormat("MMM-dd' 'HH:mm", Locale.US).apply {
         timeZone = TimeZone.getDefault()
     }
     private var lastTreatmentTimestamp: Long? = null
@@ -141,11 +141,10 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, "Please enter all macronutrients", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
+            // Use the calendar's value rather than the button text so the UI
+            // label can be customized without affecting parsing.
+            val timestamp = calendar.timeInMillis
 
-            val timestampText = binding.timestampInput.text.toString()
-            val timestamp = runCatching {
-                displaySdf.parse(timestampText)?.time
-            }.getOrNull() ?: System.currentTimeMillis()
             val treatment = Treatment(carbs, protein, fat, note, timestamp)
             ApiClient.sendTreatment(this, treatment) { success ->
                 runOnUiThread {
@@ -389,7 +388,9 @@ class MainActivity : AppCompatActivity() {
 
     /** Update the timestamp input field based on the current calendar. */
     private fun updateTimestampInput() {
-        binding.timestampInput.setText(displaySdf.format(calendar.time))
+
+        binding.timestampInput.setText("{faw-clock}  " + displaySdf.format(calendar.getTime()));
+
     }
     /** Reset all form fields back to the current time and empty values. */
     private fun resetForm() {
