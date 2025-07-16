@@ -16,22 +16,33 @@ object OfflineStorage {
 
     fun retryUnsyncedData(context: Context) {
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        val entries = prefs.getStringSet(KEY, mutableSetOf())?.toMutableSet() ?: return
-        val remaining = mutableSetOf<String>()
+        val entries = prefs.getStringSet(KEY, mutableSetOf())?.toList() ?: return
 
-        for (entry in entries) {
+        fun sendNext(index: Int) {
+            if (index >= entries.size) return
+
+            val entry = entries[index]
             val json = JSONObject(entry)
-            val t = Treatment(
+            val treatment = Treatment(
                 carbs = json.getDouble("carbs").toFloat(),
                 protein = json.getDouble("protein").toFloat(),
                 fat = json.getDouble("fat").toFloat(),
                 note = json.getString("notes"),
                 timestamp = runCatching { java.time.Instant.parse(json.getString("created_at")).toEpochMilli() }.getOrDefault(0L)
             )
-            ApiClient.sendTreatment(context, t) { success ->
-                if (!success) remaining.add(entry)
-                prefs.edit().putStringSet(KEY, remaining).apply()
+
+            ApiClient.sendTreatment(context, treatment) { success ->
+                val current = prefs.getStringSet(KEY, mutableSetOf())?.toMutableSet() ?: mutableSetOf()
+                if (success) {
+                    current.remove(entry)
+                }
+                prefs.edit().putStringSet(KEY, current).apply()
+                sendNext(index + 1)
             }
+        }
+
+        if (entries.isNotEmpty()) {
+            sendNext(0)
         }
     }
 }
