@@ -1,5 +1,7 @@
 package com.atelierdjames.nillafood
 
+/** RecyclerView adapter for displaying daily insulin usage summaries. */
+
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,12 +11,14 @@ import androidx.recyclerview.widget.RecyclerView
 class InsulinUsageAdapter : RecyclerView.Adapter<InsulinUsageAdapter.ViewHolder>() {
     private val items = mutableListOf<InsulinUsageSummary>()
 
+    /** Replace the data set with [newList] and refresh the view. */
     fun submitList(newList: List<InsulinUsageSummary>) {
         items.clear()
         items.addAll(newList)
         notifyDataSetChanged()
     }
 
+    /** ViewHolder representing a single row of summary data. */
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val dateText: TextView = itemView.findViewById(R.id.insulinUsageDate)
         private val novaText: TextView = itemView.findViewById(R.id.insulinUsageNovorapid)
@@ -23,6 +27,7 @@ class InsulinUsageAdapter : RecyclerView.Adapter<InsulinUsageAdapter.ViewHolder>
         private val proteinText: TextView = itemView.findViewById(R.id.insulinUsageProtein)
         private val fatText: TextView = itemView.findViewById(R.id.insulinUsageFat)
 
+        /** Bind the displayed values to [item]. */
         fun bind(item: InsulinUsageSummary) {
             dateText.text = item.day
             novaText.text = item.novorapid.toString()
@@ -43,5 +48,6 @@ class InsulinUsageAdapter : RecyclerView.Adapter<InsulinUsageAdapter.ViewHolder>
         holder.bind(items[position])
     }
 
+    /** Number of summaries currently shown. */
     override fun getItemCount() = items.size
 }

@@ -17,6 +17,10 @@ import org.json.JSONObject
 import androidx.core.net.toUri
 import com.atelierdjames.nillafood.TimeInRange
 
+/**
+ * Lightweight HTTP client responsible for communicating with the Nightscout
+ * API. All network operations are executed in coroutines.
+ */
 object ApiClient {
     private const val NIGHTSCOUT_URL = "https://nightscout.atelierdjames.com/api/v1/treatments"
 
@@ -46,6 +50,10 @@ object ApiClient {
         return obj.optLong("date")
     }
 
+    /**
+     * Fetch glucose readings between [start] and [end] from Nightscout and add
+     * them to local storage.
+     */
     private suspend fun fetchNewEntries(
         context: Context,
         start: java.time.Instant,
@@ -96,6 +104,7 @@ object ApiClient {
         }
     }
 
+    /** Post a new meal treatment to Nightscout. */
     fun sendTreatment(context: Context, treatment: Treatment, callback: (Boolean) -> Unit) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -137,6 +146,10 @@ object ApiClient {
         }
     }
 
+    /**
+     * Retrieve the latest meal treatments from Nightscout and deliver them via
+     * [callback]. Results are also cached locally.
+     */
     fun getRecentTreatments(context: Context, callback: (List<Treatment>?) -> Unit) {
         CoroutineScope(Dispatchers.IO).launch {
             syncRecentTreatmentsInternal(context)
@@ -147,6 +160,7 @@ object ApiClient {
         }
     }
 
+    /** Synchronise any new treatments with Nightscout then invoke [callback]. */
     fun syncRecentTreatments(context: Context, callback: () -> Unit) {
         CoroutineScope(Dispatchers.IO).launch {
             syncRecentTreatmentsInternal(context)
@@ -154,6 +168,7 @@ object ApiClient {
         }
     }
 
+    /** Internal helper to sync the most recent treatments into local storage. */
     private suspend fun syncRecentTreatmentsInternal(context: Context) {
         val lastLocal = TreatmentStorage.getLatestTimestamp(context)
         try {
@@ -191,6 +206,10 @@ object ApiClient {
         }
     }
 
+    /**
+     * Fetch insulin injection entries from Nightscout and store them locally.
+     * The resulting list is provided via [callback].
+     */
     fun getInsulinInjections(context: Context, callback: (List<InsulinInjection>?) -> Unit) {
         CoroutineScope(Dispatchers.IO).launch {
             val lastLocal = InsulinInjectionStorage.getLatestTimestamp(context)
@@ -244,6 +263,7 @@ object ApiClient {
         }
     }
 
+    /** Calculate the average glucose value over the last 24 hours. */
     fun getAverageGlucose(context: Context, callback: (Float?) -> Unit) {
         CoroutineScope(Dispatchers.IO).launch {
             val now = java.time.Instant.now()
@@ -283,6 +303,7 @@ object ApiClient {
         }
     }
 
+    /** Retrieve and compute various glucose statistics used in the UI. */
     fun getGlucoseStats(context: Context, callback: (GlucoseStats?) -> Unit) {
         CoroutineScope(Dispatchers.IO).launch {
             val now = java.time.Instant.now()
@@ -387,6 +408,7 @@ object ApiClient {
         }
     }
 
+    /** Delete a treatment by id from Nightscout. */
     fun deleteTreatment(id: String, callback: (Boolean) -> Unit) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -407,6 +429,10 @@ object ApiClient {
         }
     }
 
+    /**
+     * Perform a full refresh of treatments, injections and glucose readings
+     * for the last 60 days.
+     */
     fun masterRefresh(context: Context, callback: () -> Unit) {
         CoroutineScope(Dispatchers.IO).launch {
             val now = java.time.Instant.now()
@@ -424,6 +450,7 @@ object ApiClient {
         }
     }
 
+    /** Retrieve all meal treatments within the specified time range. */
     private suspend fun fetchAllTreatments(start: java.time.Instant, end: java.time.Instant): List<Treatment> {
         val uri = NIGHTSCOUT_URL.toUri().buildUpon()
             .appendQueryParameter("find[eventType]", "Meal Entry")
@@ -447,6 +474,7 @@ object ApiClient {
         return result
     }
 
+    /** Retrieve all insulin injections within the specified time range. */
     private suspend fun fetchAllInjections(start: java.time.Instant, end: java.time.Instant): List<InsulinInjection> {
         val uri = NIGHTSCOUT_URL.toUri().buildUpon()
             .appendQueryParameter("find[insulin][\$gt]", "0")
@@ -487,6 +515,7 @@ object ApiClient {
         return result
     }
 
+    /** Retrieve all glucose entries within the specified time range. */
     private suspend fun fetchAllGlucose(start: java.time.Instant, end: java.time.Instant): List<GlucoseEntry> {
         val formatter = java.time.format.DateTimeFormatter
             .ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")

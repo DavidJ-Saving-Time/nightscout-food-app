@@ -1,5 +1,7 @@
 package com.atelierdjames.nillafood.ui.theme
 
+/** Compose Material theme setup used by the application. */
+
 import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme

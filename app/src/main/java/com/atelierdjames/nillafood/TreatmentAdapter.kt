@@ -1,5 +1,10 @@
 package com.atelierdjames.nillafood
 
+/**
+ * RecyclerView adapter used to display logged meal treatments. It highlights
+ * newly added items so the user can easily identify recent entries.
+ */
+
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,7 +15,6 @@ import androidx.recyclerview.widget.DiffUtil
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-// hello
 class TreatmentAdapter(
     private val onItemClick: (Treatment) -> Unit = {}, // Optional click listener
     private val onDelete: (Treatment) -> Unit = {}
@@ -20,6 +24,7 @@ class TreatmentAdapter(
     private val newItemTimestamps = mutableSetOf<Long>()
 
     // Improved list submission with diffing
+    /** Replace the displayed list with [newList] using DiffUtil for animations. */
     fun submitList(newList: List<Treatment>) {
         val diffResult = DiffUtil.calculateDiff(object : DiffUtil.Callback() {
             override fun getOldListSize() = items.size
@@ -40,6 +45,7 @@ class TreatmentAdapter(
         diffResult.dispatchUpdatesTo(this)
     }
 
+    /** Holds the views for a single treatment entry. */
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val carbsText: TextView = itemView.findViewById(R.id.carbsText)
         private val proteinText: TextView = itemView.findViewById(R.id.proteinText)
@@ -48,6 +54,7 @@ class TreatmentAdapter(
         private val createdAtText: TextView = itemView.findViewById(R.id.createdAtText)
         private val deleteButton: View = itemView.findViewById(R.id.deleteButton)
 
+        /** Bind [treatment] details to the row widgets. */
         fun bind(treatment: Treatment, isNew: Boolean) {
             carbsText.text = itemView.context.getString(R.string.carbs_format, treatment.carbs)
             proteinText.text = itemView.context.getString(R.string.protein_format, treatment.protein)
@@ -62,6 +69,7 @@ class TreatmentAdapter(
             itemView.setBackgroundColor(ContextCompat.getColor(itemView.context, colorRes))
         }
 
+        /** Convert the epoch time into a readable date string. */
         private fun formatDate(epoch: Long): String {
             return try {
                 val instant = Instant.ofEpochMilli(epoch)
@@ -85,8 +93,10 @@ class TreatmentAdapter(
         holder.bind(items[position], isNew)
     }
 
+    /** Number of treatments currently displayed. */
     override fun getItemCount() = items.size
 
+    /** Mark a set of newly added [newItems] so they can be highlighted. */
     fun markNewItems(newItems: List<Treatment>) {
         val timestamps = newItems.map { it.timestamp }
         newItemTimestamps.addAll(timestamps)

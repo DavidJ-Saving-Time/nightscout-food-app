@@ -1,5 +1,11 @@
 package com.atelierdjames.nillafood
 
+/**
+ * Provides a singleton instance of [AppDatabase]. This ensures that the
+ * database connection is shared across the entire application and that
+ * migrations are applied consistently.
+ */
+
 import android.content.Context
 import androidx.room.Room
 import androidx.room.migration.Migration
@@ -11,6 +17,10 @@ object DatabaseProvider {
     @Volatile
     private var INSTANCE: AppDatabase? = null
 
+    /**
+     * Returns the application wide [AppDatabase] instance. The database is
+     * lazily created on first access and stored for reuse.
+     */
     fun db(context: Context): AppDatabase {
         return INSTANCE ?: synchronized(this) {
             INSTANCE ?: Room.databaseBuilder(
@@ -23,6 +33,10 @@ object DatabaseProvider {
         }
     }
 
+    /**
+     * Database migration from version 5 to 6. It converts stored date strings
+     * into epoch based timestamps for the insulin and treatment tables.
+     */
     private val MIGRATION_5_6 = object : Migration(5, 6) {
         override fun migrate(db: SupportSQLiteDatabase) {
             db.execSQL("ALTER TABLE insulin_injections RENAME TO temp_insulin")

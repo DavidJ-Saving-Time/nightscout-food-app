@@ -1,5 +1,10 @@
 package com.atelierdjames.nillafood
 
+/**
+ * Main entry point of the application displaying meal logs, insulin injections
+ * and Nightscout statistics. Most UI interactions and data loading happen here.
+ */
+
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.os.Bundle
@@ -192,6 +197,7 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         updateNetworkStatus()
     }
+    /** Configure recycler view showing logged meals. */
     private fun setupMealRecyclerView() {
         adapter = TreatmentAdapter(
             onItemClick = { treatment -> showTreatmentDetails(treatment) },
@@ -211,6 +217,7 @@ class MainActivity : AppCompatActivity() {
         Log.d(TAG, "RecyclerView setup complete")
     }
 
+    /** Setup recycler view for insulin injection history. */
     private fun setupInsulinRecyclerView() {
         insulinAdapter = InsulinAdapter()
         binding.insulinRecyclerView.apply {
@@ -219,6 +226,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /** Setup recycler view displaying a seven day usage summary. */
     private fun setupInsulinUsageRecyclerView() {
         insulinUsageAdapter = InsulinUsageAdapter()
         binding.insulinUsageRecyclerView.apply {
@@ -227,6 +235,10 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Load meal treatments from local storage and then refresh from the API.
+     * [onComplete] is invoked with the updated list once syncing finishes.
+     */
     private fun loadTreatments(onComplete: ((List<Treatment>) -> Unit)? = null) {
         Log.d(TAG, "Loading treatments...")
         val wasAtTop = !binding.treatmentsRecyclerView.canScrollVertically(-1)
@@ -264,6 +276,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /** Fetch insulin injections from the API and update the list. */
     private fun loadInsulinTreatments() {
         CoroutineScope(Dispatchers.IO).launch {
             // Load any cached injections first so something is displayed
@@ -288,6 +301,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /** Load aggregated insulin usage for the last seven days. */
     private fun loadInsulinUsage() {
         CoroutineScope(Dispatchers.IO).launch {
             val data = InsulinInjectionStorage.getLast7DaysSummary(this@MainActivity)
@@ -297,6 +311,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /** Request glucose statistics from the API and update the UI. */
     private fun loadStats() {
         binding.averageGlucose.text = getString(R.string.average_glucose_placeholder)
         binding.averageGlucose7.text = getString(R.string.average_glucose_placeholder)
@@ -327,6 +342,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Configure a pie chart widget to display time in range information.
+     */
     private fun setupPieChart(chart: com.github.mikephil.charting.charts.PieChart, tir: TimeInRange) {
         val entries = listOf(
             com.github.mikephil.charting.data.PieEntry(tir.inRange, ""),
@@ -347,6 +365,7 @@ class MainActivity : AppCompatActivity() {
         chart.invalidate()
     }
 
+    /** Update text showing hours since the last insulin injections. */
     private fun updateLastScanText(list: List<InsulinInjection>) {
         val now = java.time.Instant.now()
 
@@ -367,6 +386,7 @@ class MainActivity : AppCompatActivity() {
 
         binding.lastScanText.text = parts.joinToString("\n")
     }
+    /** Reset all form fields back to the current time and empty values. */
     private fun resetForm() {
         binding.carbsInput.text?.clear()
         binding.proteinInput.text?.clear()
@@ -376,6 +396,7 @@ class MainActivity : AppCompatActivity() {
         binding.timestampInput.setText(displaySdf.format(calendar.time))
     }
 
+    /** Display a dialog confirming that a meal was logged successfully. */
     private fun showLoggedMealDialog(treatment: Treatment) {
         val message = getString(
             R.string.meal_logged_message,
@@ -390,10 +411,12 @@ class MainActivity : AppCompatActivity() {
             .setPositiveButton(android.R.string.ok, null)
             .show()
     }
+    /** Placeholder for showing more detail when a meal is tapped. */
     private fun showTreatmentDetails(treatment: Treatment) {
         Toast.makeText(this, "Selected: ${treatment.note}", Toast.LENGTH_SHORT).show()
     }
 
+    /** Delete the given treatment both remotely and locally. */
     private fun deleteTreatment(treatment: Treatment) {
         val id = treatment.id ?: return
         ApiClient.deleteTreatment(id) { success ->
@@ -411,6 +434,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /** Hide the soft keyboard if it is visible. */
     private fun hideKeyboard() {
         val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         currentFocus?.let { view ->
@@ -418,6 +442,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /** Determine if the device currently has an active internet connection. */
     private fun isOnline(): Boolean {
         val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -432,6 +457,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /** Refresh the network status label based on connectivity. */
     private fun updateNetworkStatus() {
         val textRes = if (isOnline()) R.string.status_online else R.string.status_offline
         binding.networkStatusText.text = getString(textRes)
