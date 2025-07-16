@@ -94,15 +94,6 @@
                     android:hint="Protein (g)"
                     android:inputType="numberDecimal"
                     android:singleLine="true"/>
-            </LinearLayout>
-
-            <!-- Fat row -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="8dp">
 
                 <com.mikepenz.iconics.view.IconicsImageView
                     android:layout_width="24dp"
@@ -173,9 +164,7 @@
                     android:drawablePadding="8dp"
                     android:background="@color/your_button_color"
                     android:textColor="@color/your_text_color"
-
-
-                android:text="{faw-egg} Log Meal!"
+                    android:text="{faw-cloud-upload-alt} Log Meal!"
                 />
 
                 <Button
@@ -189,7 +178,16 @@
 
             </LinearLayout>
         </LinearLayout>
-
+        <!-- Network status and recent treatments list -->
+        <TextView
+            android:id="@+id/networkStatusText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textStyle="bold"
+            android:padding="4dp"
+            android:textSize="16sp"
+            />
 
         <!-- Recent Treatments List (takes remaining space) -->
         <androidx.recyclerview.widget.RecyclerView
@@ -197,7 +195,7 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="2dp"
             android:clipToPadding="false"
             android:paddingBottom="16dp"/>
 
@@ -207,232 +205,234 @@
             android:layout_height="wrap_content"
             android:text="@string/refresh" />
 
-        <Button
-            android:id="@+id/masterRefreshButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/master_refresh" />
+                <Button
+                  android:id="@+id/masterRefreshButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/master_refresh"
+                    android:visibility="gone"
+                    />
 
-    </LinearLayout>
+            </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/insulinLayout"
-        android:orientation="vertical"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:visibility="gone">
-
-        <TextView
-            android:id="@+id/lastScanText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text=""
-            android:gravity="center"
-        android:textAlignment="center"
-        android:textStyle="bold"
-        android:textSize="16sp"
-        android:padding="8dp"
-        />
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/insulinRecyclerView"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
-
-        <Button
-            android:id="@+id/refreshInsulinButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/refresh" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/insulinUsageLayout"
-        android:orientation="vertical"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:visibility="gone">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:padding="8dp">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
+            <LinearLayout
+                android:id="@+id/insulinLayout"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
                 android:layout_weight="1"
-                android:text="@string/insulin_usage_heading_date"
-                android:textStyle="bold"
-                android:gravity="center_horizontal" />
+                android:visibility="gone">
 
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/insulin_usage_heading_novorapid"
+                <TextView
+                    android:id="@+id/lastScanText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:gravity="center"
+                android:textAlignment="center"
                 android:textStyle="bold"
-                android:gravity="center_horizontal" />
+                android:textSize="16sp"
+                android:padding="8dp"
+                />
 
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/insulin_usage_heading_tresiba"
-                android:textStyle="bold"
-                android:gravity="center_horizontal" />
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/insulinRecyclerView"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1" />
 
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/insulin_usage_heading_carbs"
-                android:textStyle="bold"
-                android:gravity="center_horizontal" />
+                <Button
+                    android:id="@+id/refreshInsulinButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/refresh" />
 
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/insulin_usage_heading_protein"
-                android:textStyle="bold"
-                android:gravity="center_horizontal" />
+            </LinearLayout>
 
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
+            <LinearLayout
+                android:id="@+id/insulinUsageLayout"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
                 android:layout_weight="1"
-                android:text="@string/insulin_usage_heading_fat"
-                android:textStyle="bold"
-                android:gravity="center_horizontal" />
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="8dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/insulin_usage_heading_date"
+                        android:textStyle="bold"
+                        android:gravity="center_horizontal" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/insulin_usage_heading_novorapid"
+                        android:textStyle="bold"
+                        android:gravity="center_horizontal" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/insulin_usage_heading_tresiba"
+                        android:textStyle="bold"
+                        android:gravity="center_horizontal" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/insulin_usage_heading_carbs"
+                        android:textStyle="bold"
+                        android:gravity="center_horizontal" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/insulin_usage_heading_protein"
+                        android:textStyle="bold"
+                        android:gravity="center_horizontal" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/insulin_usage_heading_fat"
+                        android:textStyle="bold"
+                        android:gravity="center_horizontal" />
+
+                </LinearLayout>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/insulinUsageRecyclerView"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1" />
+
+                <Button
+                    android:id="@+id/refreshInsulinUsageButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/refresh" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/nightscoutLayout"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/averageGlucose"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/average_glucose_placeholder"
+                    android:textAlignment="center"
+                    android:textSize="16sp"
+                    android:padding="8dp" />
+
+                <TextView
+                    android:id="@+id/averageGlucose7"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/average_glucose_placeholder"
+                    android:textAlignment="center"
+                    android:textSize="16sp"
+                    android:padding="8dp" />
+
+                <TextView
+                    android:id="@+id/averageGlucose14"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/average_glucose_placeholder"
+                    android:textAlignment="center"
+                    android:textSize="16sp"
+                    android:padding="8dp" />
+
+                <TextView
+                    android:id="@+id/hba1cText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/hba1c_placeholder"
+                    android:textAlignment="center"
+                    android:textSize="16sp"
+                    android:padding="8dp" />
+
+                <TextView
+                    android:id="@+id/hba1cDaysText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:textAlignment="center"
+                    android:textSize="14sp"
+                    android:padding="4dp" />
+
+                <TextView
+                    android:id="@+id/sdText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/sd_placeholder"
+                    android:textAlignment="center"
+                    android:textSize="16sp"
+                    android:padding="8dp" />
+
+                <Button
+                    android:id="@+id/refreshStatsButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/refresh" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/time_in_range_24h"
+                    android:textAlignment="center"
+                    android:paddingTop="8dp" />
+
+                <com.github.mikephil.charting.charts.PieChart
+                    android:id="@+id/pie24h"
+                    android:layout_width="match_parent"
+                    android:layout_height="150dp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/time_in_range_7d"
+                    android:textAlignment="center"
+                    android:paddingTop="8dp" />
+
+                <com.github.mikephil.charting.charts.PieChart
+                    android:id="@+id/pie7d"
+                    android:layout_width="match_parent"
+                    android:layout_height="150dp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/time_in_range_14d"
+                    android:textAlignment="center"
+                    android:paddingTop="8dp" />
+
+                <com.github.mikephil.charting.charts.PieChart
+                    android:id="@+id/pie14d"
+                    android:layout_width="match_parent"
+                    android:layout_height="150dp" />
+
+            </LinearLayout>
 
         </LinearLayout>
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/insulinUsageRecyclerView"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
-
-        <Button
-            android:id="@+id/refreshInsulinUsageButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/refresh" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/nightscoutLayout"
-        android:orientation="vertical"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:visibility="gone">
-
-        <TextView
-            android:id="@+id/averageGlucose"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/average_glucose_placeholder"
-            android:textAlignment="center"
-            android:textSize="16sp"
-            android:padding="8dp" />
-
-        <TextView
-            android:id="@+id/averageGlucose7"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/average_glucose_placeholder"
-            android:textAlignment="center"
-            android:textSize="16sp"
-            android:padding="8dp" />
-
-        <TextView
-            android:id="@+id/averageGlucose14"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/average_glucose_placeholder"
-            android:textAlignment="center"
-            android:textSize="16sp"
-            android:padding="8dp" />
-
-        <TextView
-            android:id="@+id/hba1cText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/hba1c_placeholder"
-            android:textAlignment="center"
-            android:textSize="16sp"
-            android:padding="8dp" />
-
-        <TextView
-            android:id="@+id/hba1cDaysText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text=""
-            android:textAlignment="center"
-            android:textSize="14sp"
-            android:padding="4dp" />
-
-        <TextView
-            android:id="@+id/sdText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/sd_placeholder"
-            android:textAlignment="center"
-            android:textSize="16sp"
-            android:padding="8dp" />
-
-        <Button
-            android:id="@+id/refreshStatsButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/refresh" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/time_in_range_24h"
-            android:textAlignment="center"
-            android:paddingTop="8dp" />
-
-        <com.github.mikephil.charting.charts.PieChart
-            android:id="@+id/pie24h"
-            android:layout_width="match_parent"
-            android:layout_height="150dp" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/time_in_range_7d"
-            android:textAlignment="center"
-            android:paddingTop="8dp" />
-
-        <com.github.mikephil.charting.charts.PieChart
-            android:id="@+id/pie7d"
-            android:layout_width="match_parent"
-            android:layout_height="150dp" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/time_in_range_14d"
-            android:textAlignment="center"
-            android:paddingTop="8dp" />
-
-        <com.github.mikephil.charting.charts.PieChart
-            android:id="@+id/pie14d"
-            android:layout_width="match_parent"
-            android:layout_height="150dp" />
-
-    </LinearLayout>
-
-</LinearLayout>
 
 

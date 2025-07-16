@@ -31,5 +31,7 @@
     <string name="insulin_usage_heading_protein">Protein</string>
     <string name="insulin_usage_heading_fat">Fat</string>
     <string name="meal_logged_title">Meal Logged</string>
+    <string name="status_online">We Are Online</string>
+    <string name="status_offline">We Are Offline</string>
     <string name="meal_logged_message">Carbs: %1$.1fg\nProtein: %2$.1fg\nFat: %3$.1fg\nNote: %4$s</string>
 </resources>

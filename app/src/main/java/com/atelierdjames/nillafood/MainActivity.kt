@@ -7,6 +7,9 @@ import android.util.Log
 import android.widget.Toast
 import android.view.View
 import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import android.os.Build
 import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AlertDialog
 import java.text.SimpleDateFormat
@@ -185,7 +188,10 @@ class MainActivity : AppCompatActivity() {
         binding.refreshInsulinUsageButton.setOnClickListener { loadInsulinUsage() }
         binding.refreshStatsButton.setOnClickListener { loadStats() }
     }
-
+    override fun onResume() {
+        super.onResume()
+        updateNetworkStatus()
+    }
     private fun setupMealRecyclerView() {
         adapter = TreatmentAdapter(
             onItemClick = { treatment -> showTreatmentDetails(treatment) },
@@ -398,4 +404,26 @@ class MainActivity : AppCompatActivity() {
             imm.hideSoftInputFromWindow(view.windowToken, 0)
         }
     }
+
+    private fun isOnline(): Boolean {
+        val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val network = cm.activeNetwork ?: return false
+            val caps = cm.getNetworkCapabilities(network) ?: return false
+            caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+        } else {
+            @Suppress("DEPRECATION")
+            val info = cm.activeNetworkInfo
+            @Suppress("DEPRECATION")
+            info != null && info.isConnected
+        }
+    }
+
+    private fun updateNetworkStatus() {
+        val textRes = if (isOnline()) R.string.status_online else R.string.status_offline
+        binding.networkStatusText.text = getString(textRes)
+    }
+
+
+
 }
