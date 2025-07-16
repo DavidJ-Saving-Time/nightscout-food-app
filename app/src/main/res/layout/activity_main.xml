@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:layout_width="match_parent"
@@ -152,33 +152,42 @@
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
 
-                <com.mikepenz.iconics.view.IconicsImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    app:iiv_icon="faw-clock"
-                    app:iiv_color="@color/purple_500"
-                    android:paddingEnd="10dp"/>
 
-                <EditText
-                    android:id="@+id/timestampInput"
+
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="8dp">
+
+
+                <com.mikepenz.iconics.view.IconicsButton
+                    android:id="@+id/submitButton"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:hint="@string/timestamp_hint"
-                    android:focusable="false"
-                    android:clickable="true"
-                    android:inputType="none"/>
-            </LinearLayout>
+                    android:layout_marginStart="8dp"
+                    android:drawablePadding="8dp"
+                    android:background="@color/your_button_color"
+                    android:textColor="@color/your_text_color"
 
-            <!-- Submit button -->
-            <Button
-                android:id="@+id/submitButton"
-                android:text="Log Meal"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:background="@color/your_button_color"
-                android:textColor="@color/your_text_color"/>
+
+                android:text="{faw-egg} Log Meal!"
+                />
+
+                <Button
+                    android:id="@+id/timestampInput"
+                    android:text="Set Time"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp" />
+
+
+            </LinearLayout>
         </LinearLayout>
 
 
