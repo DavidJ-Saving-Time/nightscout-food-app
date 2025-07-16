@@ -6,6 +6,8 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import android.view.View
+import android.content.Context
+import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AlertDialog
 import java.text.SimpleDateFormat
 import java.util.*
@@ -121,6 +123,7 @@ class MainActivity : AppCompatActivity() {
         })
 
         binding.submitButton.setOnClickListener {
+            hideKeyboard()
             val carbs = binding.carbsInput.text.toString().toFloatOrNull()
             val protein = binding.proteinInput.text.toString().toFloatOrNull()
             val fat = binding.fatInput.text.toString().toFloatOrNull()
@@ -386,6 +389,13 @@ class MainActivity : AppCompatActivity() {
                     Toast.makeText(this, "Failed to delete", Toast.LENGTH_SHORT).show()
                 }
             }
+        }
+    }
+
+    private fun hideKeyboard() {
+        val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        currentFocus?.let { view ->
+            imm.hideSoftInputFromWindow(view.windowToken, 0)
         }
     }
 }
